@@ -1,0 +1,7 @@
+.gradle
+gradle.properties
+build
+*.class
+*.war
+*.ear
+node_modules

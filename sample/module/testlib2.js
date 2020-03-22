@@ -1,0 +1,1 @@
+console.log("◆◆◆TestLib2.js is loaded.◆◆◆");

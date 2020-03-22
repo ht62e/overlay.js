@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>Window System Test</title>
+    <script src="./lib/promise-7.0.4.min.js"></script>
+
+
+    <link rel="stylesheet" href="../overlay.css">
+
+    <script data-main="../build/amd/overlay.js" src="./lib/require.js"></script>
+    <!-- <script src="../build/umd/overlay-min.js"></script> -->
+    <!-- <script src="../build/release/intraframe.js"></script> -->
+
+    <script>
+        window.overlayjsInitializer = function() {
+            const viewPortEl = document.getElementById("app");
+            const om = Overlayjs.overlayManager = new Overlayjs.OverlayManager(viewPortEl);
+
+            const dialog1 = new Overlayjs.IFrameWindow(
+                "dialog1",
+                "./window1.html"
+            );
+            // const dialog2 = new Overlayjs.core.IFrameWindow(
+            //     "dialog2",
+            //     "./window2.html",
+            // );
+            const message1 = new Overlayjs.MessageDialog(
+              "message1"  
+            );
+
+
+            //om.mountPermanently(dialog1);
+
+            om.open(dialog1).then(function(result) {
+                console.log(JSON.stringify(result));
+                om.open(dialog1);
+            });
+            // om.open(dialog2).then(function(result) {
+            //     console.log(JSON.stringify(result));
+            // });
+            om.openAsModal(message1, {
+                mode: Overlayjs.MessageDialog.ERROR,
+                title: "テストダイアログタイトル",
+                message: "テストメッセージテストメッセージテストメッセージテストメッセージテストメッセージテストメッセージテストメッセージ"
+            }).then(function(result) {
+                console.log(JSON.stringify(result));
+            });
+
+            //om.showWaitScreen("メッセージ");
+            
+        }
+
+
+
+
+    </script>
+
+
+
+    <style>
+        html, body {
+            height: 100%;
+        }
+
+        * {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        #app {
+            
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="app" style="width: 100%; height: 100%;">
+
+    </div>
+</body>
+
+</html>

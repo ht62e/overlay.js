@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "ES5",
+        "sourceMap": false,
+        "module": "ESNext",
+        "removeComments": true,
+        "lib": [
+            "dom",
+            "es5",
+            "scripthost",
+            "es2015.promise",
+            "es2015.iterable",
+            "es2015.collection"
+        ]
+    }
+}

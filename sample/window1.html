@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <title>タイトル1</title>
+<script src="./overlayjs-iframe-client.js"></script>
+<script>
+
+
+
+    //*********************************************************
+
+    window.addEventListener("load", function(e) {
+        document.getElementById("ok_button").addEventListener("click", function(e) {
+            Overlayjs.return("ABC123");
+        });
+        document.getElementById("cancel_button").addEventListener("click", function(e) {
+            Overlayjs.cancel();
+        });
+        document.getElementById("open1_button").addEventListener("click", function(e) {
+            Overlayjs.openNewIFrameWindowAsModal("modal1", "./window2.html").then(function(d) {
+                document.getElementById("log").innerHTML = JSON.stringify(d);
+            }).catch(function(error) {
+                document.getElementById("log").innerHTML = "キャンセル";
+            });
+        });
+
+        document.getElementById("showWaitScreen").addEventListener("click", function(e) {
+            Overlayjs.showWaitScreen("testest");
+            Overlayjs.hideWaitScreen();
+            Overlayjs.showWaitScreen("testest");
+            Overlayjs.hideWaitScreen();
+            // window.setTimeout(function() {
+            //     Overlayjs.hideWaitScreen();
+            // }, 1000)
+        });
+
+    });
+</script>
+
+</head>
+<body>
+テストウインドウ1
+<div id="log">
+
+</div>
+<input type="button" id="open1_button" value="モーダルオープン">
+<input type="button" id="ok_button" value="OK">
+<input type="button" id="cancel_button" value="キャンセル">
+<input type="button" id="showWaitScreen" value="showWaitScreen">
+</body>
+</html>

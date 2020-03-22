@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch Chrome With DevMode",
+            "file": "${workspaceRoot}/sample/index.html",
+            "sourceMaps": true,
+            "webRoot": "${workspaceFolder}",
+            "runtimeArgs": [
+                "--disable-web-security"
+            ]
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Sample App",
+            "file": "${workspaceRoot}/docs/demo/index.html",
+            "sourceMaps": true,
+            "webRoot": "${workspaceFolder}",
+            "runtimeArgs": [
+                "--disable-web-security"
+            ]
+        }
+    ]
+}

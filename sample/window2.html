@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <script src="./overlayjs-iframe-client.js"></script>
+<script>
+
+
+
+//*********************************************************
+
+    window.addEventListener("load", function(e) {
+        document.getElementById("ok_button").addEventListener("click", function(e) {
+            Overlayjs.return("ABC123");
+        });
+        document.getElementById("cancel_button").addEventListener("click", function(e) {
+            Overlayjs.cancel();
+        });
+        document.getElementById("open1_button").addEventListener("click", function(e) {
+            Overlayjs.openNewIFrameWindowAsModal("modal2", "./window3.html");
+        });
+    });
+
+
+</script>
+
+</head>
+<body>
+テストウインドウ2
+<div id="log">
+
+</div>
+<input type="button" id="open1_button" value="モーダルオープン">
+<input type="button" id="ok_button" value="OK">
+<input type="button" id="cancel_button" value="キャンセル">
+</body>
+</html>
