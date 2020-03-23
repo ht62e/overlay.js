@@ -88,8 +88,8 @@ export default class IFrameProxy {
                     }, "*");
                 });
                 break;
-            case "showWaitScreen":
-                overlayManager.showWaitScreen(
+            case "showLoadingOverlay":
+                overlayManager.showLoadingOverlay(
                     data.params.message, 
                     data.params.showProgressBar, 
                     data.params.progressRatio
@@ -100,8 +100,8 @@ export default class IFrameProxy {
                         }, "*");
                     });
                 break;
-            case "hideWaitScreen":
-                overlayManager.hideWaitScreen();
+            case "hideLoadingOverlay":
+                overlayManager.hideLoadingOverlay();
                 break;
             case "":
                 break;

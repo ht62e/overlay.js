@@ -9,6 +9,10 @@
 
 */
 
+if (window.navigator.userAgent.toLowerCase().indexOf("msie") !== -1 || window.navigator.userAgent.toLowerCase().indexOf("trident") !== -1) {
+    "function"!=typeof Object.assign&&Object.defineProperty(Object,"assign",{value:function(d,f){if(null==d)throw new TypeError("Cannot convert undefined or null to object");for(var e=Object(d),b=1;b<arguments.length;b++){var a=arguments[b];if(null!=a)for(var c in a)Object.prototype.hasOwnProperty.call(a,c)&&(e[c]=a[c])}return e},writable:!0,configurable:!0});
+}
+
 if (window !== window.parent) {
 
     if (!window.Overlayjs) window.Overlayjs = {};
@@ -159,15 +163,15 @@ if (window !== window.parent) {
         return Overlayjs._open(name, "openNewIFrameWindowAsModal", {url: url});
     }
 
-    Overlayjs.showWaitScreen = function(message, showProgressBar, progressRatio) {
-        return Overlayjs._open("waitScreen", "showWaitScreen", {
+    Overlayjs.showLoadingOverlay = function(message, showProgressBar, progressRatio) {
+        return Overlayjs._open("waitScreen", "showLoadingOverlay", {
             message: message,
             showProgressBar: showProgressBar,
             progressRatio: progressRatio,
         });
     }
 
-    Overlayjs.hideWaitScreen = function() {
-        Overlayjs._open("waitScreen", "hideWaitScreen");
+    Overlayjs.hideLoadingOverlay = function() {
+        Overlayjs._open("waitScreen", "hideLoadingOverlay");
     }
 }

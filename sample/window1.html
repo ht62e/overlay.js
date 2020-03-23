@@ -4,6 +4,7 @@
 <head>
     <title>タイトル1</title>
 <script src="./overlayjs-iframe-client.js"></script>
+<script src="./lib/promise-7.0.4.min.js"></script>
 <script>
 
 
@@ -25,13 +26,13 @@
             });
         });
 
-        document.getElementById("showWaitScreen").addEventListener("click", function(e) {
-            Overlayjs.showWaitScreen("testest");
-            Overlayjs.hideWaitScreen();
-            Overlayjs.showWaitScreen("testest");
-            Overlayjs.hideWaitScreen();
+        document.getElementById("showLoadingOverlay").addEventListener("click", function(e) {
+            Overlayjs.showLoadingOverlay("testest");
+            Overlayjs.hideLoadingOverlay();
+            Overlayjs.showLoadingOverlay("testest");
+            setTimeout(function(){Overlayjs.hideLoadingOverlay()}, 1000);
             // window.setTimeout(function() {
-            //     Overlayjs.hideWaitScreen();
+            //     Overlayjs.hideLoadingOverlay();
             // }, 1000)
         });
 
@@ -47,6 +48,6 @@
 <input type="button" id="open1_button" value="モーダルオープン">
 <input type="button" id="ok_button" value="OK">
 <input type="button" id="cancel_button" value="キャンセル">
-<input type="button" id="showWaitScreen" value="showWaitScreen">
+<input type="button" id="showLoadingOverlay" value="showLoadingOverlay">
 </body>
 </html>

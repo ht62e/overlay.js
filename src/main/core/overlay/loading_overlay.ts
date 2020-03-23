@@ -2,7 +2,7 @@ import Overlay, { OverlayShowOptions } from "./overlay";
 import { Result } from "../common/dto";
 import { CssSize } from "../common/types";
 
-export default class WaitScreen extends Overlay {
+export default class LoadingOverlay extends Overlay {
     public static DEFAULT_NAME: string = "_default_wait_screen";
 
     protected loadingAnimationEl: HTMLDivElement;
@@ -11,7 +11,7 @@ export default class WaitScreen extends Overlay {
     protected progressEl: HTMLDivElement;
 
     constructor() {
-        super(WaitScreen.DEFAULT_NAME, new CssSize("100%", "100%"));
+        super(LoadingOverlay.DEFAULT_NAME, new CssSize("100%", "100%"));
 
         let _el: HTMLDivElement;
 

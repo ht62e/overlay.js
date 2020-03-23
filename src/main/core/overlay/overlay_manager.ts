@@ -2,7 +2,7 @@ import Overlay, { OverlayShowOptions } from "./overlay";
 import { Result } from "../common/dto";
 import CssTransitionDriver from "../common/css_transition_driver";
 import IFrameProxy from "./iframe_proxy";
-import WaitScreen from "./wait_screen";
+import LoadingOverlay from "./loading_overlay";
 
 export interface OverlayConfig {
     modal?: boolean;
@@ -48,7 +48,7 @@ export default class OverlayManager {
     private configTable: Map<string, OverlayConfig>;
 
     private activeOverlay: Overlay;
-    private defaultWaitScreen: WaitScreen;
+    private defaultWaitScreen: LoadingOverlay;
 
     private previousMouseX: number = 0;
     private previousMouseY: number = 0;
@@ -103,7 +103,7 @@ export default class OverlayManager {
 
         this.setViewPortElement(viewPortElement);
 
-        this.defaultWaitScreen = new WaitScreen();
+        this.defaultWaitScreen = new LoadingOverlay();
         this.mountPermanently(this.defaultWaitScreen, null);
     }
 
@@ -294,7 +294,7 @@ export default class OverlayManager {
         return result;
     }
 
-    public showWaitScreen(message, showProgressBar, progressRatio): Promise<Result> {
+    public showLoadingOverlay(message, showProgressBar, progressRatio): Promise<Result> {
         const config: OverlayConfig = {
             forceForeground: true,
             parentOverlay: this.activeOverlay
@@ -304,11 +304,8 @@ export default class OverlayManager {
         });
     }
 
-    public hideWaitScreen() {
-        //const status = this.statusTable.get(this.defaultWaitScreen.getName());
-        //if (status && status.isVisible) {
+    public hideLoadingOverlay() {
         this.defaultWaitScreen.close(Result.ok());
-        //}
     }
 
     public overlayMouseDownEventHandler(overlayName: string) {

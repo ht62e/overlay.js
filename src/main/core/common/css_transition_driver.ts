@@ -8,6 +8,8 @@ export interface CssTransitionDriverClasses {
 }
 
 export default class CssTransitionDriver {
+    private static ANIMATION_APPLYING_DELAY_TIME: number = 20;
+
     private target: HTMLElement;
     private standyStateClass: string = "standy_state";
     private enterTransitionClass: string = "enter_transition";
@@ -57,7 +59,7 @@ export default class CssTransitionDriver {
         }
     }
 
-    public async show(withoutTransition?: boolean): Promise<boolean> {console.log("SHOW");
+    public async show(withoutTransition?: boolean): Promise<boolean> {
         if (this.hidePromise) {
             //クローズアニメーション中に再表示した場合においても、hide呼び出し元は閉じたことを通知する
             this.hidePromise = null;
@@ -79,7 +81,7 @@ export default class CssTransitionDriver {
         }
     }
 
-    public async hide(withoutTransition?: boolean): Promise<boolean> {console.log("HIDE");
+    public async hide(withoutTransition?: boolean): Promise<boolean> {
         if (Common.isMsIE) withoutTransition = true; //IEバグ対策
         if (this.target.style.display === "none" || this.target.style.visibility === "hidden") return;
         
@@ -94,7 +96,7 @@ export default class CssTransitionDriver {
             if (this.hidePromise) {
                 return this.hidePromise;
             } else {
-                return this.hidePromise = new Promise(resolve => {               
+                return this.hidePromise = new Promise(resolve => {
                     this.hideResolver = resolve;
                 });
             }
@@ -114,6 +116,7 @@ export default class CssTransitionDriver {
             _t.style.visibility = ""; //初回表示まではvisibility:hiddenで非表示状態になっている
             _t.style.opacity = "";
 
+            //CSSのdisplayの解除と共にCSSクラスを適用するとアニメーションが実行されないため少し遅らせる（なお遅れ0でも不安定）
             window.setTimeout(() => {
                 _t.style.pointerEvents = "";
                 if (this.enterTransitionClass && !withoutTransition) {
@@ -133,24 +136,26 @@ export default class CssTransitionDriver {
                 this.showEventHandlers.forEach(handler => {
                     handler();
                 });
-            }, 0);
+            }, CssTransitionDriver.ANIMATION_APPLYING_DELAY_TIME);
         } else {
-            _t.style.pointerEvents = "none";
-            if (this.standyStateClass) {
-                _t.classList.remove(this.standyStateClass);
-            }
-            if (this.enterTransitionClass) {
-                _t.classList.remove(this.enterTransitionClass);
-            }
-            if (this.leaveTransitionClass && !withoutTransition) {
-                _t.classList.add(this.leaveTransitionClass);
-            } else {
-                _t.style.display = "none";
-                transitionIsUsed = false;
-            }
-            if (this.endStateClass) {
-                _t.classList.add(this.endStateClass);
-            }
+            window.setTimeout(() => {
+                _t.style.pointerEvents = "none";
+                if (this.standyStateClass) {
+                    _t.classList.remove(this.standyStateClass);
+                }
+                if (this.enterTransitionClass) {
+                    _t.classList.remove(this.enterTransitionClass);
+                }
+                if (this.leaveTransitionClass && !withoutTransition) {
+                    _t.classList.add(this.leaveTransitionClass);
+                } else {
+                    _t.style.display = "none";
+                    transitionIsUsed = false;
+                }
+                if (this.endStateClass) {
+                    _t.classList.add(this.endStateClass);
+                }
+            }, CssTransitionDriver.ANIMATION_APPLYING_DELAY_TIME);
         }
 
         return transitionIsUsed;

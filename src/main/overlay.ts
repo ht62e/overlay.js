@@ -16,12 +16,12 @@ import Drawer, { DrawerOptions } from "./core/overlay/drawer";
 import Overlay from "./core/overlay/overlay";
 import IFrameWindow from "./core/overlay/iframe_window";
 import MessageDialog, { MessageDialogMode } from "./core/overlay/message_dialog";
-import WaitScreen from "./core/overlay/wait_screen";
+import LoadingOverlay from "./core/overlay/loading_overlay";
 
 //Webpack UMD形式バンドルにおいてimportしたモジュールが公開されない挙動への対応
 export { 
     OverlayManager, ContextMenu, Drawer, IFrameWindow, MessageDialog,
-    WaitScreen, MessageDialogMode
+    LoadingOverlay as WaitScreen, MessageDialogMode
 }
 
 var __overlayjsBootstrap = function() {
@@ -34,7 +34,7 @@ var __overlayjsBootstrap = function() {
         ojs.Overlay = Overlay;
         ojs.IFrameWindow = IFrameWindow;
         ojs.MessageDialog = MessageDialog;
-        ojs.WaitScreen = WaitScreen;
+        ojs.WaitScreen = LoadingOverlay;
         ojs.ContextMenu = ContextMenu;
         ojs.Drawer = Drawer;
     }
