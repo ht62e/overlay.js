@@ -21,8 +21,8 @@ if (window !== window.parent) {
 
     Overlayjs.awaitCallTable = {};
 
-    Overlayjs.pendingFunction = null;
-    Overlayjs.pendingFunctionArguments = null;
+    Overlayjs.pendingFunctions = [];
+    Overlayjs.pendingFunctionsArguments = [];
 
     Overlayjs.MessageDialogMode = {
         INFO: 0,
@@ -44,11 +44,11 @@ if (window !== window.parent) {
             case "dispatchIFrameId":
                 Overlayjs.iframeId = data.params;
 
-                if (Overlayjs.pendingFunction) {
-                    Overlayjs.pendingFunction.apply(this, Overlayjs.pendingFunctionArguments);
-                    Overlayjs.pendingFunction = null;
-                    Overlayjs.pendingFunctionArguments = null;
+                for (let i = 0; i < Overlayjs.pendingFunctions.length; i++) {
+                    Overlayjs.pendingFunctions[i].apply(this, Overlayjs.pendingFunctionsArguments[i]);
                 }
+                Overlayjs.pendingFunctions = [];
+                Overlayjs.pendingFunctionsArguments = [];
                 break;
             case "headerCloseButtonClicked":
                 if (window["onCloseRequest"]) {
@@ -128,8 +128,8 @@ if (window !== window.parent) {
     Overlayjs._open = function(name, command, extendParams) {
         if (!Overlayjs.getIFrameId()) {
             //iFrameのonLoadイベント中にオーバーレイ表示を実行する場合は実行を待機する
-            Overlayjs.pendingFunction = Overlayjs._open;
-            Overlayjs.pendingFunctionArguments = arguments;
+            Overlayjs.pendingFunctions.push(Overlayjs._open);
+            Overlayjs.pendingFunctionsArguments.push(arguments);
             return;
         }
 

@@ -33,8 +33,6 @@ export default class OverlayManager {
     private static FOREGROUND_Z_INDEX: number = 3000;
 
     private viewPortEl: HTMLElement = null;
-    private viewPortBaseIFrame: HTMLIFrameElement;
-    private viewPortBaseIFrameId: string;
 
     public overlayLastFocusedElement: HTMLElement = null;
 
@@ -181,12 +179,8 @@ export default class OverlayManager {
         element.appendChild(this.modalBackgroundLayer);
     }
 
-    public setViewPortBaseIFrame(element: HTMLIFrameElement) {
-        if (this.viewPortBaseIFrame) {
-            IFrameProxy.getInstance().unregister(this.viewPortBaseIFrameId);
-        }
-        this.viewPortBaseIFrame = element;
-        this.viewPortBaseIFrameId = IFrameProxy.getInstance().register(element, this);
+    public registerExistingFixedIFrame(element: HTMLIFrameElement) {
+        IFrameProxy.getInstance().register(element, this);
     }
 
     private register(overlay: Overlay, overlayConfig?: OverlayConfig): void {
