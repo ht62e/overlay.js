@@ -1,10 +1,13 @@
-import Overlay, { OverlayShowOptions } from "./overlay";
+import Overlay, { OverlayOptions } from "./overlay";
 import { Result } from "../common/dto";
 import CssTransitionDriver from "../common/css_transition_driver";
 import IFrameProxy from "./iframe_proxy";
 import LoadingOverlay from "./loading_overlay";
+import { Point, CssSize } from "../common/types";
 
-export interface OverlayConfig {
+export interface OverlayOpenConfig {
+    size? : CssSize;
+    position?: Point;
     modal?: boolean;
     forceForeground? : boolean;
     autoCloseWhenOutfocus?: boolean;
@@ -43,7 +46,7 @@ export default class OverlayManager {
     private overlays: Map<string, Overlay>;
     private permanentMountTable: Map<string, boolean>;
     private statusTable: Map<string, OverlayStatus>;
-    private configTable: Map<string, OverlayConfig>;
+    private configTable: Map<string, OverlayOpenConfig>;
 
     private activeOverlay: Overlay;
     private defaultWaitScreen: LoadingOverlay;
@@ -68,7 +71,7 @@ export default class OverlayManager {
         this.overlays = new Map<string, Overlay>();
         this.permanentMountTable = new Map<string, boolean>();
         this.statusTable = new Map<string, OverlayStatus>();
-        this.configTable = new Map<string, OverlayConfig>();
+        this.configTable = new Map<string, OverlayOpenConfig>();
 
         viewPortElement.style.position = "relative";
 
@@ -183,7 +186,7 @@ export default class OverlayManager {
         IFrameProxy.getInstance().register(element, this);
     }
 
-    private register(overlay: Overlay, overlayConfig?: OverlayConfig): void {
+    private register(overlay: Overlay, overlayConfig?: OverlayOpenConfig): void {
         const name: string = overlay.getName();
         const status = this.statusTable.get(name);
 
@@ -212,11 +215,11 @@ export default class OverlayManager {
         }, OverlayManager.INSTANT_MOUNTED_OVERLAY_AUTO_UNMOUNT_DELAY_TIME);
     }
 
-    private updateConfig(overlay: Overlay, overlayConfig?: OverlayConfig): void {
+    private updateConfig(overlay: Overlay, overlayConfig?: OverlayOpenConfig): void {
         this.configTable.set(overlay.getName(), overlayConfig ? overlayConfig : {});
     }
 
-    public mountPermanently(overlay: Overlay, overlayConfig: OverlayConfig): void {
+    public mountPermanently(overlay: Overlay, overlayConfig: OverlayOpenConfig): void {
         this.permanentMountTable.set(overlay.getName(), true);
         this.register(overlay, overlayConfig);
     }
@@ -237,7 +240,7 @@ export default class OverlayManager {
         }
     }
 
-    private async _open(overlay: Overlay, config: OverlayConfig, params?: any, options?: OverlayShowOptions): Promise<Result> {
+    private async _open(overlay: Overlay, config: OverlayOpenConfig, params?: any): Promise<Result> {
         if (!config) config = {};
         const overlayName = overlay.getName();
         const enableInstantMount: boolean = !this.permanentMountTable.has(overlayName);
@@ -249,11 +252,13 @@ export default class OverlayManager {
         }
 
         const status = this.statusTable.get(overlayName);
-        status.isVisible = true;
         status.isModal = !!config.modal;
 
+        if (config.size) overlay.resize(config.size.cssWidth, config.size.cssHeight);
+        if (config.position) overlay.changePosition(config.position.x, config.position.y);
+
         this.activateSpecificOverlay(overlayName);
-        const result = await overlay.load(config.modal, params, options);
+        const result = await overlay.load(config.modal, params);
 
         status.isVisible = false;
         status.isModal = false;
@@ -267,21 +272,21 @@ export default class OverlayManager {
         return result;
     }
 
-    public async open(overlay: Overlay, params?: any, options?: OverlayShowOptions): Promise<Result> {
+    public async open(overlay: Overlay, config: OverlayOpenConfig, params?: any): Promise<Result> {
         if (this.modalCount === 0) {
-            return this._open(overlay, null, params, options);
+            return this._open(overlay, config, params);
         } else {
-            return this.openAsModal(overlay, params, options);
+            return this.openAsModal(overlay, config, params);
         }
     }
 
-    public async openAsModal(overlay: Overlay, params?: any, options?: OverlayShowOptions): Promise<Result> {
+    public async openAsModal(overlay: Overlay, config: OverlayOpenConfig, params?: any): Promise<Result> {
         this.beginModalMode();
         
-        const config: OverlayConfig = {
-            modal: true
-        }
-        const result = await this._open(overlay, config, params, options);
+        let cfg = config ? config : {};
+        cfg.modal = true;
+
+        const result = await this._open(overlay, cfg, params);
 
         this.endModalMode();
 
@@ -289,7 +294,7 @@ export default class OverlayManager {
     }
 
     public showLoadingOverlay(message, showProgressBar, progressRatio): Promise<Result> {
-        const config: OverlayConfig = {
+        const config: OverlayOpenConfig = {
             forceForeground: true,
             parentOverlay: this.activeOverlay
         }
@@ -311,6 +316,8 @@ export default class OverlayManager {
         const overlayList = new Array<Overlay>();
         const targetOverlay = this.overlays.get(overlayName);
 
+        this.statusTable.get(overlayName).isVisible = true;
+
         this.overlays.forEach((value: Overlay, key: string) => {
             if (key !== overlayName) overlayList.push(value);
         });
@@ -327,7 +334,7 @@ export default class OverlayManager {
         });
 
         let visibleOverlayCounter = 0;
-        let previousOverlayConfig: OverlayConfig = null;
+        let previousOverlayConfig: OverlayOpenConfig = null;
         let previousOverlay: Overlay = null;
 
         overlayList.forEach((overlay: Overlay) => {

@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
     mode: "production",
@@ -10,6 +11,11 @@ module.exports = {
         library: "Overlayjs",
         libraryTarget: "umd"
     },
+    plugins: [
+        new webpack.BannerPlugin({
+          banner: "overlay.js | Copyright (c) 2020 Ryota Takaki | MIT license"
+        })
+      ],
     module: {
         rules: [
             {

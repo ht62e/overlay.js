@@ -125,7 +125,7 @@ if (window !== window.parent) {
         }, "*");
     }
 
-    Overlayjs._open = function(name, command, extendParams) {
+    Overlayjs._open = function(name, command, params, openConfig) {
         if (!Overlayjs.getIFrameId()) {
             //iFrameのonLoadイベント中にオーバーレイ表示を実行する場合は実行を待機する
             Overlayjs.pendingFunctions.push(Overlayjs._open);
@@ -137,9 +137,15 @@ if (window !== window.parent) {
             Overlayjs.registerAwait(name, { resolve: resolve, reject: reject });
         });
 
+        var postMsgParams = {
+            name: name,
+            loadParams: params,
+            openConfig: openConfig
+        }
+
         window.parent.postMessage({
             command: command,
-            params: Object.assign({ name: name }, extendParams),
+            params: postMsgParams,
             sender: Overlayjs.getIFrameId(),
             listenerClass: "IFrameWindow"
         }, "*");
@@ -147,20 +153,20 @@ if (window !== window.parent) {
         return promise;    
     }
 
-    Overlayjs.open = function(name, params) {
-        return Overlayjs._open(name, "open", params);
+    Overlayjs.open = function(name, params, openConfig) {
+        return Overlayjs._open(name, "open", params, openConfig);
     }
 
-    Overlayjs.openAsModal = function(name, params) {
-        return Overlayjs._open(name, "openAsModal", params);
+    Overlayjs.openAsModal = function(name, params, openConfig) {
+        return Overlayjs._open(name, "openAsModal", params, openConfig);
     }
 
-    Overlayjs.openNewIFrameWindow = function(name, url) {
-        return Overlayjs._open(name, "openNewIFrameWindow", {url: url});
+    Overlayjs.openNewIFrameWindow = function(name, url, openConfig) {
+        return Overlayjs._open(name, "openNewIFrameWindow", {url: url}, openConfig);
     }
 
-    Overlayjs.openNewIFrameWindowAsModal = function(name, url) {
-        return Overlayjs._open(name, "openNewIFrameWindowAsModal", {url: url});
+    Overlayjs.openNewIFrameWindowAsModal = function(name, url, openConfig) {
+        return Overlayjs._open(name, "openNewIFrameWindowAsModal", {url: url}, openConfig);
     }
 
     Overlayjs.showLoadingOverlay = function(message, showProgressBar, progressRatio) {

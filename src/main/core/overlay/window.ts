@@ -1,11 +1,8 @@
 import OverlayManager from "./overlay_manager";
-import { CssSize } from "../common/types";
-import { Result } from "../common/dto";
 import ResizableOverlay from "./resizable_overlay";
-import { OverlayShowOptions } from "./overlay";
+import { OverlayOptions } from "./overlay";
 
-export interface WindowOptions {
-    size?: CssSize;
+export interface WindowOptions extends OverlayOptions {
     defaultCaption?: string;
     resizable?: boolean;
     hideHeader?: boolean;
@@ -27,7 +24,7 @@ export default abstract class Window extends ResizableOverlay {
     protected abstract onHeaderCloseButtonClick(event: MouseEvent): void;
 
     constructor(name: string, options?: WindowOptions) {
-        super(name, options ? options.size : null);
+        super(name, options);
 
         this.windowOptions = options;
 

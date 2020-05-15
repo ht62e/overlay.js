@@ -1,6 +1,6 @@
 import Window, { WindowOptions } from "./window";
 import OverlayManager from "./overlay_manager";
-import Overlay, { OverlayShowOptions } from "./overlay";
+import Overlay, { OverlayOptions } from "./overlay";
 import { Result } from "../common/dto";
 import IFrameProxy from "./iframe_proxy";
 
@@ -35,11 +35,7 @@ export default class IFrameWindow extends Window {
         IFrameProxy.getInstance().unregister(this.iframeId);
     }
 
-    public async load(isModal: boolean, params?: any, options?: OverlayShowOptions): Promise<Result> {
-        if (options && options.position) {
-            this.changePosition(options.position.x, options.position.y);
-        }   
-
+    public async load(isModal: boolean, params?: any, options?: OverlayOptions): Promise<Result> {
         this.iframeEl.src = this.sourceUrl;
         this.iframeEl.style.pointerEvents = "inherit";
         this.outerFrameTransitionDriver.show();

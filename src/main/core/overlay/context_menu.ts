@@ -1,19 +1,15 @@
-import Overlay, { OverlayShowOptions } from "./overlay";
-import { Size, CssSize } from "../common/types";
+import Overlay, { OverlayOptions } from "./overlay";
+import { Size } from "../common/types";
 import { Result } from "../common/dto";
 import Common from "../common/common";
 import OverlayManager from "./overlay_manager";
-
-export interface ContextMenuOptions {
-    size?: CssSize;
-}
 
 export default class ContextMenu extends Overlay {
     protected contentEl: HTMLDivElement;
     protected onetimeSize: Size;
 
-    constructor(name: string, options: ContextMenuOptions) {
-        super(name, options ? options.size : null);
+    constructor(name: string, options: OverlayOptions) {
+        super(name, options);
     }
 
     public mount(overlayManager: OverlayManager): void {
@@ -38,7 +34,7 @@ export default class ContextMenu extends Overlay {
         });
     }
     
-    public load(isModal: boolean, params?: any, options?: OverlayShowOptions): Promise<Result> {
+    public load(isModal: boolean, params?: any, options?: OverlayOptions): Promise<Result> {
         let x: number, y: number;
 
         x = Common.currentMouseClientX;

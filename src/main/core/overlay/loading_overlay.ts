@@ -1,4 +1,4 @@
-import Overlay, { OverlayShowOptions } from "./overlay";
+import Overlay, { OverlayOptions } from "./overlay";
 import { Result } from "../common/dto";
 import { CssSize } from "../common/types";
 
@@ -11,7 +11,8 @@ export default class LoadingOverlay extends Overlay {
     protected progressEl: HTMLDivElement;
 
     constructor() {
-        super(LoadingOverlay.DEFAULT_NAME, new CssSize("100%", "100%"));
+        const options: OverlayOptions = {size: new CssSize("100%", "100%")};
+        super(LoadingOverlay.DEFAULT_NAME, options);
 
         let _el: HTMLDivElement;
 
@@ -50,7 +51,7 @@ export default class LoadingOverlay extends Overlay {
         });
     }
 
-    public load(isModal: boolean, params?: any, options?: OverlayShowOptions): Promise<Result> {
+    public load(isModal: boolean, params?: any, options?: OverlayOptions): Promise<Result> {
         let msg = "", disp = "none", p = 0;
         
         if (params) {

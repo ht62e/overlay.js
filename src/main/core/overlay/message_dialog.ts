@@ -1,13 +1,12 @@
 import OverlayManager from "./overlay_manager";
-import Overlay, { OverlayShowOptions } from "./overlay";
+import Overlay, { OverlayOptions } from "./overlay";
 import { CssSize } from "../common/types";
 import { Result } from "../common/dto";
 
 const MessageDialogMode: any = {};
 export {MessageDialogMode};
 
-export interface MessageDialogOptions {
-    size?: CssSize;
+export interface MessageDialogOptions extends OverlayOptions {
     caption?: string;
 }
 
@@ -39,10 +38,16 @@ export default class MessageDialog extends Overlay {
     private focusTargetElAfterShow: HTMLElement;    
 
     constructor(name: string, options?: MessageDialogOptions) {
-        super(name, options && options.size && options.size.cssHeight ? options.size : { 
-            cssWidth: MessageDialog.DEFAULT_DIALOG_CSS_WIDTH,
-            cssHeight: "auto",
-        });
+        let opt = options ? options : {};
+        if (opt.fixPositionToCenter === undefined) opt.fixPositionToCenter = true;
+
+        if (!(opt.size && opt.size.cssHeight)) {
+            opt.size = {
+                cssWidth: MessageDialog.DEFAULT_DIALOG_CSS_WIDTH,
+                cssHeight: "auto"
+            };
+        }
+        super(name, opt);
 
         this.autoHeight = (!options || !options.size || !options.size.cssHeight) ;
 
@@ -144,7 +149,7 @@ export default class MessageDialog extends Overlay {
     }
 
 
-    public load(isModal: boolean, params?: any, options?: OverlayShowOptions): Promise<Result> {
+    public load(isModal: boolean, params?: any, options?: OverlayOptions): Promise<Result> {
         let mode = MessageDialog.INFO;
         
         let title = "";
@@ -223,8 +228,6 @@ export default class MessageDialog extends Overlay {
 
         this.containerEl.className = MessageDialog.CONTAINER_CSS_NAME + " " + colorCssName;
 
-        this.fixPositionToCenterMode = true;
-
         this.shrinkWidthToMaximum();
         this.moveToViewPortCenter();
 
@@ -244,9 +247,8 @@ export default class MessageDialog extends Overlay {
     }
 
     protected shrinkWidthToMaximum() {
-        if (!this.fixPositionToCenterMode) return;
 
-        const ratio: number = this.maxWidthRatioOfViewPort ? this.maxWidthRatioOfViewPort : Overlay.DEFAULT_MAX_OVERLAY_WIDTH_RATIO_OF_VIEWPORT;
+        const ratio: number = this.options.maxWidthRatioOfViewPort ? this.options.maxWidthRatioOfViewPort : Overlay.DEFAULT_MAX_OVERLAY_WIDTH_RATIO_OF_VIEWPORT;
         const viewPortWidth = this.viewPortEl.offsetWidth;
         const maxWidth: number = Math.round(viewPortWidth * ratio);
         const initialWidth = this.originalSizePx.width;
@@ -256,7 +258,7 @@ export default class MessageDialog extends Overlay {
             finalWidth = maxWidth + "px";
         }
 
-        this.resize(finalWidth, this.size.cssHeight);
+        this.resize(finalWidth, this.currentSize.cssHeight);
     }
 
 

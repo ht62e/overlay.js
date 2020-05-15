@@ -10,9 +10,9 @@
 */
 
 import Common from "./core/common/common";
-import OverlayManager, { OverlayConfig } from "./core/overlay/overlay_manager";
-import ContextMenu, { ContextMenuOptions } from "./core/overlay/context_menu";
-import Drawer, { DrawerOptions } from "./core/overlay/drawer";
+import OverlayManager from "./core/overlay/overlay_manager";
+import ContextMenu from "./core/overlay/context_menu";
+import Drawer from "./core/overlay/drawer";
 import Overlay from "./core/overlay/overlay";
 import IFrameWindow from "./core/overlay/iframe_window";
 import MessageDialog, { MessageDialogMode } from "./core/overlay/message_dialog";
@@ -37,6 +37,7 @@ var __overlayjsBootstrap = function() {
         ojs.WaitScreen = LoadingOverlay;
         ojs.ContextMenu = ContextMenu;
         ojs.Drawer = Drawer;
+
     }
 
     if (global.overlayjsInitializer) {

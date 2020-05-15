@@ -3,8 +3,8 @@ import { Point, Size, CssSize } from "../common/types";
 import CssTransitionDriver from "../common/css_transition_driver";
 import { Result } from "../common/dto";
 
-export interface OverlayShowOptions {
-    position?: Point;
+export interface OverlayOptions {
+    size?: CssSize;
     fixPositionToCenter?: boolean;
     maxWidthRatioOfViewPort?: number;
 }
@@ -53,14 +53,13 @@ export default abstract class Overlay {
     protected modalInactiveLayerTransitionDriver: CssTransitionDriver;
 
     protected position: Point;
-    protected size: CssSize;
-    protected fixPositionToCenterMode: boolean;
+    protected currentSize: CssSize;
+    protected options: OverlayOptions;
     protected autoHeight: boolean;
     protected originalSize: CssSize;
     protected originalSizePx: Size;
     protected offsetSizeCache: Size;
     protected zIndex: number;
-    protected maxWidthRatioOfViewPort: number;
 
     protected mounted: boolean = false;
     protected active: boolean = false;
@@ -71,13 +70,14 @@ export default abstract class Overlay {
     protected waitForOverlayClosePromise: Promise<Result>;
     protected waitForOverlayCloseResolver: (value?: Result | PromiseLike<Result>) => void;
     
-    public abstract async load(isModal: boolean, params?: any, options?: OverlayShowOptions): Promise<Result>;
+    public abstract async load(isModal: boolean, params?: any): Promise<Result>;
     public abstract onReceiveMessage(data: any, sender: Overlay): Promise<Result>;
 
-    constructor(name: string, size: CssSize) {
+    constructor(name: string, options: OverlayOptions) {
         this.name = name;
-        const cssWidth = size ? size.cssWidth : Overlay.DEFAULT_OVERLAY_SIZE_WIDTH;
-        const cssHeight = size ? size.cssHeight : Overlay.DEFAULT_OVERLAY_SIZE_HEIGHT;
+        this.options = options ? options : {};
+        const cssWidth = options && options.size ? options.size.cssWidth : Overlay.DEFAULT_OVERLAY_SIZE_WIDTH;
+        const cssHeight = options && options.size ? options.size.cssHeight : Overlay.DEFAULT_OVERLAY_SIZE_HEIGHT;
         this.originalSize = new CssSize(cssWidth, cssHeight);
 
         this.frameEl = document.createElement("div");
@@ -261,7 +261,7 @@ export default abstract class Overlay {
     }
 
     public onViewPortResize(viewPortWidth: number, viewPortHeight: number) {
-        if (this.fixPositionToCenterMode) {
+        if (this.options.fixPositionToCenter) {
             this.moveToViewPortCenter();
         }
     }
@@ -276,10 +276,7 @@ export default abstract class Overlay {
         this.resize(this.originalSize.cssWidth, this.originalSize.cssHeight);
     }
 
-    public changeZIndex(zIndex: number): void {
-        this.zIndex = zIndex;
-        this.frameEl.style.zIndex = String(zIndex);
-    }
+
 
     public getName(): string {
         return this.name;
@@ -296,6 +293,11 @@ export default abstract class Overlay {
         this.frameEl.style.top = String(y) + "px";
     }
 
+    public changeZIndex(zIndex: number): void {
+        this.zIndex = zIndex;
+        this.frameEl.style.zIndex = String(zIndex);
+    }
+
     public moveToViewPortCenter(): void {
         if (!this.offsetSizeCache) this.cacheCurrentOffsetSize();
         let x = Math.round((this.viewPortEl.offsetWidth - this.offsetSizeCache.width) / 2);
@@ -305,7 +307,7 @@ export default abstract class Overlay {
     }
 
     public resize(width: string, height: string): void {
-        this.size = new CssSize(width, height);
+        this.currentSize = new CssSize(width, height);
         this.frameEl.style.width = width;
         this.frameEl.style.height = height;
         this.cacheCurrentOffsetSize();

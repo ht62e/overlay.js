@@ -1,9 +1,9 @@
-import Overlay, { OverlayShowOptions } from "./overlay";
+import Overlay, { OverlayOptions } from "./overlay";
 import { Size } from "../common/types";
 import { Result } from "../common/dto";
 import OverlayManager from "./overlay_manager";
 
-export interface DrawerOptions {
+export interface DrawerOptions extends OverlayOptions {
     dockType?: DockType;
     dockSize?: string;
 }
@@ -20,7 +20,7 @@ export default class Drawer extends Overlay {
     protected dockSize: string;
 
     constructor(name: string, templateRootElement: HTMLElement, options: DrawerOptions) {
-        super(name, null);
+        super(name, options);
 
         this.dockType = options.dockType !== undefined ? options.dockType: DockType.Left;
         this.dockSize = options.dockSize !== undefined ? options.dockSize: "33%";
@@ -97,7 +97,7 @@ export default class Drawer extends Overlay {
         //何もしない
     }
     
-    public load(isModal: boolean, params?: any, options?: OverlayShowOptions): Promise<Result> {
+    public load(isModal: boolean, params?: any, options?: OverlayOptions): Promise<Result> {
         //this.container.initialize(parcel);
         this.outerFrameTransitionDriver.show();
   

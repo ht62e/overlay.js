@@ -1,6 +1,7 @@
 import { IFrameWindow, OverlayManager } from "../../overlay";
 import { Result } from "../common/dto";
 import Overlay from "./overlay";
+import Window from "./window";
 
 
 export default class IFrameProxy {
@@ -47,6 +48,8 @@ export default class IFrameProxy {
         if (!e.data.sender) throw new Error("iFrameIDが未指定です。loadイベントハンドラ実行後に実行する必要があります。");
 
         const data = e.data;
+        const params = data.params ? data.params : {};
+        const overlayName = params.name;
         const iCtx: IFrameContext = this.iframeContexts.get(data.sender);
         const senderOverlay: Overlay = iCtx.getHolderOverlay();
         const senderIFrame: HTMLIFrameElement = iCtx.getIFrameEl();
@@ -55,53 +58,58 @@ export default class IFrameProxy {
         
         switch (data.command) {
             case "ok":
-                senderOverlay.close(Result.ok(data.params));
+                senderOverlay.close(Result.ok(params));
                 break;
             case "cancel":
-                senderOverlay.close(Result.cancel(data.params));
+                senderOverlay.close(Result.cancel(params));
                 break;
             case "open":
-                overlayManager.open(overlayManager.getOverlay(data.params.name), data.params).then(result => {
+                overlayManager.open(overlayManager.getOverlay(overlayName), params.openConfig, params.loadParams).then(result => {
                     senderIFrame.contentWindow.postMessage({
-                        command: "return", params: result, sender: data.params.name
+                        command: "return", params: result, sender: overlayName
                     }, "*");
                 });
                 break;
             case "openAsModal":
-                overlayManager.openAsModal(overlayManager.getOverlay(data.params.name), data.params).then(result => {
+                overlayManager.openAsModal(overlayManager.getOverlay(overlayName), params.openConfig, params.loadParams).then(result => {
                     senderIFrame.contentWindow.postMessage({
-                        command: "return", params: result, sender: data.params.name
+                        command: "return", params: result, sender: overlayName
                     }, "*");
                 });
                 break;
             case "openNewIFrameWindow":
-                overlayManager.open(this.getAvailableIFrameWindow(data.params.name, data.params.url)).then(result => {
+                overlayManager.open(this.getAvailableIFrameWindow(overlayName, params.loadParams.url), params.openConfig, params.loadParams).then(result => {
                     senderIFrame.contentWindow.postMessage({
-                        command: "return", params: result, sender: data.params.name
+                        command: "return", params: result, sender: overlayName
                     }, "*");
                 });
                 break;
             case "openNewIFrameWindowAsModal":
-                overlayManager.openAsModal(this.getAvailableIFrameWindow(data.params.name, data.params.url)).then(result => {
+                overlayManager.openAsModal(this.getAvailableIFrameWindow(overlayName, params.loadParams.url), params.openConfig, params.loadParams).then(result => {
                     senderIFrame.contentWindow.postMessage({
-                        command: "return", params: result, sender: data.params.name
+                        command: "return", params: result, sender: overlayName
                     }, "*");
                 });
                 break;
             case "showLoadingOverlay":
                 overlayManager.showLoadingOverlay(
-                    data.params.message, 
-                    data.params.showProgressBar, 
-                    data.params.progressRatio
+                    params.message, 
+                    params.showProgressBar, 
+                    params.progressRatio
                     ).then(result => {
                         if (result.isOk) return;
                         senderIFrame.contentWindow.postMessage({
-                            command: "stop", params: result, sender: data.params.name
+                            command: "stop", params: result, sender: params.name
                         }, "*");
                     });
                 break;
             case "hideLoadingOverlay":
                 overlayManager.hideLoadingOverlay();
+                break;
+            case "changeWindowCaption":
+                if (senderOverlay) {
+                    (senderOverlay as Window).changeWindowCaption(params.caption);
+                }
                 break;
             case "":
                 break;

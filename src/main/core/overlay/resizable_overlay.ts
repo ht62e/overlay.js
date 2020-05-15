@@ -1,6 +1,6 @@
 import OverlayManager from "./overlay_manager";
 import { Point, Size, CssSize } from "../common/types";
-import Overlay from "./overlay";
+import Overlay, { OverlayOptions } from "./overlay";
 
 export default abstract class ResizableOverlay extends Overlay {
     public static resizeHandleThicknessPx: number = 8;
@@ -14,8 +14,8 @@ export default abstract class ResizableOverlay extends Overlay {
 
     private resizeHandleEl = new Array<HTMLDivElement>();
 
-    constructor(name: string, size: CssSize) {
-        super(name, size);
+    constructor(name: string, options: OverlayOptions) {
+        super(name, options);
     }
 
     public mount(overlayManager: OverlayManager): void {
@@ -38,7 +38,7 @@ export default abstract class ResizableOverlay extends Overlay {
         //outerFrameElの周囲にリサイズイベント検知用のエレメントを生成・配置
         this.createResizeHandleElements();
 
-        this.resize(this.size.cssWidth, this.size.cssHeight);
+        this.resize(this.currentSize.cssWidth, this.currentSize.cssHeight);
     }
 
     private createResizeHandleElements() {
@@ -188,7 +188,7 @@ export default abstract class ResizableOverlay extends Overlay {
     }
 
     public resize(width: string, height: string): void {
-        this.size = new CssSize(width, height);
+        this.currentSize = new CssSize(width, height);
         this.frameEl.style.width = "calc(" + width + " + " + (ResizableOverlay.resizeHandleThicknessPx * 2) + "px)";
         this.frameEl.style.height = "calc(" + height + " + " + (ResizableOverlay.resizeHandleThicknessPx * 2) + "px)";
     }
