@@ -34,7 +34,7 @@ export default class ContextMenu extends Overlay {
         });
     }
     
-    public load(isModal: boolean, params?: any, options?: OverlayOptions): Promise<Result> {
+    public load(isModal: boolean, params?: any): Promise<Result> {
         let x: number, y: number;
 
         x = Common.currentMouseClientX;

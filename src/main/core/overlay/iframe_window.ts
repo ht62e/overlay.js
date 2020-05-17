@@ -4,12 +4,16 @@ import Overlay, { OverlayOptions } from "./overlay";
 import { Result } from "../common/dto";
 import IFrameProxy from "./iframe_proxy";
 
+export interface IFrameWindowOptions extends WindowOptions {
+    url?: string;
+}
+
 export default class IFrameWindow extends Window {
     protected sourceUrl: string;
     protected iframeEl: HTMLIFrameElement;
     protected iframeId: string;
 
-    constructor(name: string, url: string, options?: WindowOptions) {
+    constructor(name: string, url: string, options?: IFrameWindowOptions) {
         super(name, options);
         this.sourceUrl = url;
 
@@ -23,24 +27,42 @@ export default class IFrameWindow extends Window {
         this.windowContentEl.appendChild(_f);
     }
 
-    //Overlay
+    //Override
     public mount(overlayManager: OverlayManager): void {
         super.mount(overlayManager);
-        this.iframeId = IFrameProxy.getInstance().register(this.iframeEl, this.overlayManager, this);
+        this.iframeId = IFrameProxy.getInstance().register(
+            this.iframeEl, this.overlayManager, this, this.onIFrameLoaded.bind(this));
     }
 
-    //Overlay
+    //Override
     public unmount(): void {
         super.unmount();
         IFrameProxy.getInstance().unregister(this.iframeId);
     }
 
-    public async load(isModal: boolean, params?: any, options?: OverlayOptions): Promise<Result> {
+    public async load(isModal: boolean, params?: any): Promise<Result> {
         this.iframeEl.src = this.sourceUrl;
         this.iframeEl.style.pointerEvents = "inherit";
         this.outerFrameTransitionDriver.show();
         
         return this.waitForOverlayClose();
+    }
+
+    public changeSourceUrl(url: string): void {
+        this.sourceUrl = url;
+        if (this.isMounted()) {
+            this.iframeEl.src = url;
+        } else {
+            this.iframeEl.src = "about:blank";
+        }
+    }
+
+    public onIFrameLoaded(): void {
+        try {
+            this.changeWindowCaption(this.iframeEl.contentWindow.document.title);
+        } catch (e) {
+            this.changeWindowCaption("");
+        }
     }
 
     public onReceiveMessage(data: any, sender: Overlay): Promise<Result> {
@@ -56,7 +78,10 @@ export default class IFrameWindow extends Window {
     }
 
     protected onHeaderCloseButtonClick(event: MouseEvent): void {
-        if (this.iframeEl.contentWindow) {
+        const window = this.iframeEl.contentWindow;
+        const overlayjsNs = (window as any).Overlayjs;
+        
+        if (window && overlayjsNs && overlayjsNs.getIFrameId && overlayjsNs.getIFrameId() !== undefined) {
             this.iframeEl.contentWindow.postMessage({
                 command: "headerCloseButtonClicked"
             }, "*");

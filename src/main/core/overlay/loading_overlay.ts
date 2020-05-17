@@ -51,7 +51,7 @@ export default class LoadingOverlay extends Overlay {
         });
     }
 
-    public load(isModal: boolean, params?: any, options?: OverlayOptions): Promise<Result> {
+    public load(isModal: boolean, params?: any): Promise<Result> {
         let msg = "", disp = "none", p = 0;
         
         if (params) {

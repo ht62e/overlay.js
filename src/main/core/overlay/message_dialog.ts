@@ -149,7 +149,7 @@ export default class MessageDialog extends Overlay {
     }
 
 
-    public load(isModal: boolean, params?: any, options?: OverlayOptions): Promise<Result> {
+    public load(isModal: boolean, params?: any): Promise<Result> {
         let mode = MessageDialog.INFO;
         
         let title = "";
@@ -240,7 +240,7 @@ export default class MessageDialog extends Overlay {
         return Promise.resolve<Result>(null);
     }
 
-    //Overlay
+    //Override
     public onViewPortResize(viewPortWidth: number, viewPortHeight: number) {
         this.shrinkWidthToMaximum();
         super.onViewPortResize(viewPortWidth, viewPortHeight);

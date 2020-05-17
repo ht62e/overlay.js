@@ -4,6 +4,7 @@ import Overlay from "./overlay";
 import Window from "./window";
 
 
+
 export default class IFrameProxy {
     private static singleton = new IFrameProxy();
     private static iframeIdSequence: number = 1;
@@ -19,10 +20,10 @@ export default class IFrameProxy {
         window.addEventListener("message", this.postMessageHandler.bind(this));
     }
 
-    public register(iframeEl: HTMLIFrameElement, overlayManager: OverlayManager, holderOverlay?: Overlay): string {
+    public register(iframeEl: HTMLIFrameElement, overlayManager: OverlayManager, holderOverlay?: Overlay, overlaysLoadEventHandler?: () => void): string {
         const id: string = String(IFrameProxy.iframeIdSequence++);
         this.iframeContexts.set(id, new IFrameContext(
-            iframeEl, id, overlayManager, holderOverlay
+            iframeEl, id, overlayManager, holderOverlay, overlaysLoadEventHandler
         ));
         return id;
     }
@@ -35,7 +36,9 @@ export default class IFrameProxy {
 
     private getAvailableIFrameWindow(overlayName: string, url: string): IFrameWindow {
         if (this.mountedOverlayPool.has(overlayName)) {
-            return this.mountedOverlayPool.get(overlayName) as IFrameWindow;
+            const overlay = this.mountedOverlayPool.get(overlayName) as IFrameWindow;
+            overlay.changeSourceUrl(url);
+            return overlay;
         } else {
             const overlay = new IFrameWindow(overlayName, url);
             this.mountedOverlayPool.set(overlayName, overlay);
@@ -126,7 +129,8 @@ class IFrameContext {
         private iframeEl: HTMLIFrameElement,
         private iframeId: string,
         private overlayManager: OverlayManager,
-        private holderOverlay: Overlay) {
+        private holderOverlay: Overlay,
+        private overlaysLoadEventHandler: () => void) {
 
             this.handlerBindThis = this.iFrameOnLoadHandler.bind(this);
             this.iframeEl.addEventListener("load", this.handlerBindThis);
@@ -143,6 +147,7 @@ class IFrameContext {
                 command: "dispatchIFrameId",
                 params: this.iframeId
             }, "*");
+            if (this.overlaysLoadEventHandler) this.overlaysLoadEventHandler();
         }
     }
 

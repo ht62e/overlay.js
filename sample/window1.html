@@ -13,10 +13,10 @@
 
     window.addEventListener("load", function(e) {
         document.getElementById("ok_button").addEventListener("click", function(e) {
-            Overlayjs.return("ABC123");
+            Overlayjs.returnAndClose("ABC123");
         });
         document.getElementById("cancel_button").addEventListener("click", function(e) {
-            Overlayjs.cancel();
+            Overlayjs.cancelAndClose();
         });
         document.getElementById("open1_button").addEventListener("click", function(e) {
             Overlayjs.openNewIFrameWindowAsModal("modal1", "./window2.html", {size: {cssWidth: "800px", cssHeight: "200px"}}).then(function(d) {

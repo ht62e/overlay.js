@@ -52,9 +52,9 @@ if (window !== window.parent) {
                 break;
             case "headerCloseButtonClicked":
                 if (window["onCloseRequest"]) {
-                    if (window.onCloseRequest()) Overlayjs.close();
+                    if (window.onCloseRequest()) Overlayjs.cancelAndClose();
                 } else {
-                    Overlayjs.cancel();
+                    Overlayjs.cancelAndClose();
                 }
                 break;
             case "receiveMessage":
@@ -80,8 +80,19 @@ if (window !== window.parent) {
         
         delete Overlayjs.awaitCallTable[overlayName];
     }
+    
+    Overlayjs.tryAndPendPostMessage = function(func, args) {
+    	if (!Overlayjs.getIFrameId()) {
+    		Overlayjs.pendingFunctions.push(func);
+    		Overlayjs.pendingFunctionsArguments.push(args);
+    		return false;
+    	}
+    	return true;
+    }
 
     Overlayjs.sendMessage = function(destination, data) {
+    	if (!Overlayjs.tryAndPendPostMessage(Overlayjs.sendMessage, arguments)) return;
+    	
         window.parent.postMessage({
             destination: destination,
             params: data,
@@ -91,6 +102,8 @@ if (window !== window.parent) {
     }
 
     Overlayjs.broadcastMessage = function(data) {
+    	if (!Overlayjs.tryAndPendPostMessage(Overlayjs.broadcastMessage, arguments)) return;
+    	
         window.parent.postMessage({
             destination: "*",
             params: data,
@@ -100,6 +113,8 @@ if (window !== window.parent) {
     }
 
     Overlayjs.changeWindowCaption = function(caption) {
+    	if (!Overlayjs.tryAndPendPostMessage(Overlayjs.changeWindowCaption, arguments)) return;
+    	
         window.parent.postMessage({
             command: "changeWindowCaption",
             params: {caption: caption},
@@ -108,7 +123,9 @@ if (window !== window.parent) {
         }, "*");
     }
 
-    Overlayjs.return = function(data) {
+    Overlayjs.returnAndClose = function(data) {
+    	if (!Overlayjs.tryAndPendPostMessage(Overlayjs.returnAndClose, arguments)) return;
+    	
         window.parent.postMessage({
             command: "ok",
             params: data,
@@ -117,7 +134,9 @@ if (window !== window.parent) {
         }, "*");
     }
 
-    Overlayjs.cancel = function() {
+    Overlayjs.cancelAndClose = function() {
+    	if (!Overlayjs.tryAndPendPostMessage(Overlayjs.cancelAndClose, arguments)) return;
+    	
         window.parent.postMessage({
             command: "cancel",
             sender: Overlayjs.getIFrameId(),
@@ -126,12 +145,7 @@ if (window !== window.parent) {
     }
 
     Overlayjs._open = function(name, command, params, openConfig) {
-        if (!Overlayjs.getIFrameId()) {
-            //iFrameのonLoadイベント中にオーバーレイ表示を実行する場合は実行を待機する
-            Overlayjs.pendingFunctions.push(Overlayjs._open);
-            Overlayjs.pendingFunctionsArguments.push(arguments);
-            return;
-        }
+    	if (!Overlayjs.tryAndPendPostMessage(Overlayjs._open, arguments)) return;
 
         const promise = new Promise(function(resolve, reject) {
             Overlayjs.registerAwait(name, { resolve: resolve, reject: reject });

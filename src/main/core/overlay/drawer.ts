@@ -97,8 +97,7 @@ export default class Drawer extends Overlay {
         //何もしない
     }
     
-    public load(isModal: boolean, params?: any, options?: OverlayOptions): Promise<Result> {
-        //this.container.initialize(parcel);
+    public load(isModal: boolean, params?: any): Promise<Result> {
         this.outerFrameTransitionDriver.show();
   
         return this.waitForOverlayClose();
