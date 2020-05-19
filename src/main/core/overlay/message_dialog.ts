@@ -176,7 +176,7 @@ export default class MessageDialog extends Overlay {
         switch (mode) {
             case MessageDialog.INFO:
                 colorCssName = "md_info";
-                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#message-dialog-check-icon" style="pointer-events: none;"></use></svg>';
+                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#message-dialog-information-icon" style="pointer-events: none;"></use></svg>';
                 okButtonLabel = "閉じる";
                 this.cancelButtonEl.style.display = "none";
                 break;
