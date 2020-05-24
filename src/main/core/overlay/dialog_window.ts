@@ -8,7 +8,7 @@ export interface WindowOptions extends OverlayOptions {
     hideHeader?: boolean;
 }
 
-export default abstract class Window extends ResizableOverlay {
+export default abstract class DialogWindow extends ResizableOverlay {
     
     protected windowOptions: WindowOptions;
 

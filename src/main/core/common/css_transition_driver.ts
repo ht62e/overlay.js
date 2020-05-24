@@ -11,7 +11,7 @@ export default class CssTransitionDriver {
     private static ANIMATION_APPLYING_DELAY_TIME: number = 20;
 
     private target: HTMLElement;
-    private standyStateClass: string = "standy_state";
+    private standbyStateClass: string = "standy_state";
     private enterTransitionClass: string = "enter_transition";
     private leaveTransitionClass: string = "leave_transition";
     private endStateClass: string = "end_state";
@@ -48,14 +48,14 @@ export default class CssTransitionDriver {
 
     public setCustomTransitionClasses(classes: CssTransitionDriverClasses): void {
         if (classes) {
-            if (classes.standyStateClass !== undefined) this.standyStateClass = classes.standyStateClass;
+            if (classes.standyStateClass !== undefined) this.standbyStateClass = classes.standyStateClass;
             if (classes.enterTransitionClass !== undefined) this.enterTransitionClass = classes.enterTransitionClass;
             if (classes.leaveTransitionClass !== undefined) this.leaveTransitionClass = classes.leaveTransitionClass;
             if (classes.endStateClass !== undefined) this.endStateClass = classes.endStateClass;
         }
 
         if (this.target.style.display === "none" || this.target.style.visibility === "hidden") {
-            this.target.classList.add(this.standyStateClass);
+            this.target.classList.add(this.standbyStateClass);
         }
     }
 
@@ -124,8 +124,8 @@ export default class CssTransitionDriver {
                 } else {
                     transitionIsUsed = false;
                 }
-                if (this.standyStateClass) {
-                    _t.classList.remove(this.standyStateClass);
+                if (this.standbyStateClass) {
+                    _t.classList.remove(this.standbyStateClass);
                 }
                 if (this.leaveTransitionClass) {
                     _t.classList.remove(this.leaveTransitionClass);
@@ -136,12 +136,12 @@ export default class CssTransitionDriver {
                 this.showEventHandlers.forEach(handler => {
                     handler();
                 });
-            }, CssTransitionDriver.ANIMATION_APPLYING_DELAY_TIME);
+            }, withoutTransition ? 0 : CssTransitionDriver.ANIMATION_APPLYING_DELAY_TIME);
         } else {
             window.setTimeout(() => {
                 _t.style.pointerEvents = "none";
-                if (this.standyStateClass) {
-                    _t.classList.remove(this.standyStateClass);
+                if (this.standbyStateClass) {
+                    _t.classList.remove(this.standbyStateClass);
                 }
                 if (this.enterTransitionClass) {
                     _t.classList.remove(this.enterTransitionClass);
@@ -155,7 +155,7 @@ export default class CssTransitionDriver {
                 if (this.endStateClass) {
                     _t.classList.add(this.endStateClass);
                 }
-            }, CssTransitionDriver.ANIMATION_APPLYING_DELAY_TIME);
+            }, withoutTransition ? 0 : CssTransitionDriver.ANIMATION_APPLYING_DELAY_TIME);
         }
 
         return transitionIsUsed;
@@ -166,8 +166,8 @@ export default class CssTransitionDriver {
         _t.style.display = "none";
         _t.style.opacity = "0";
 
-        if (this.standyStateClass) {
-            _t.classList.add(this.standyStateClass);
+        if (this.standbyStateClass) {
+            _t.classList.add(this.standbyStateClass);
         }
         if (this.leaveTransitionClass) {
             _t.classList.remove(this.leaveTransitionClass)

@@ -24,12 +24,17 @@ export {
     LoadingOverlay as WaitScreen, MessageDialogMode
 }
 
+var __global = window as any;
+if (!__global.Overlayjs) __global.Overlayjs = {
+    isHost: true
+};
+
 var __overlayjsBootstrap = function() {
     const global = window as any;
 
     //開発用エクスポート処理
-    if (!global.Overlayjs) {
-        const ojs: any = global.Overlayjs = {};
+    let ojs: any = global.Overlayjs;
+    if (!ojs.OverlayManager) {
         ojs.OverlayManager = OverlayManager;
         ojs.Overlay = Overlay;
         ojs.IFrameWindow = IFrameWindow;
@@ -37,7 +42,6 @@ var __overlayjsBootstrap = function() {
         ojs.WaitScreen = LoadingOverlay;
         ojs.ContextMenu = ContextMenu;
         ojs.Drawer = Drawer;
-
     }
 
     if (global.overlayjsInitializer) {

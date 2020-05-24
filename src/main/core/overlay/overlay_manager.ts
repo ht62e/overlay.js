@@ -106,6 +106,8 @@ export default class OverlayManager {
 
         this.defaultWaitScreen = new LoadingOverlay();
         this.mountPermanently(this.defaultWaitScreen, null);
+
+        IFrameProxy.getInstance().registerHost(this);
     }
 
     public sendMessage(destination: string, data: any, sender: string): Promise<Result> {
@@ -180,10 +182,6 @@ export default class OverlayManager {
     public setViewPortElement(element: HTMLElement) {
         this.viewPortEl = element;
         element.appendChild(this.modalBackgroundLayer);
-    }
-
-    public registerExistingFixedIFrame(element: HTMLIFrameElement) {
-        IFrameProxy.getInstance().register(element, this);
     }
 
     private register(overlay: Overlay, overlayConfig?: OverlayOpenConfig): void {

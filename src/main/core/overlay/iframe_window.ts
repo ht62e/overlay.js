@@ -1,4 +1,4 @@
-import Window, { WindowOptions } from "./window";
+import DialogWindow, { WindowOptions } from "./dialog_window";
 import OverlayManager from "./overlay_manager";
 import Overlay, { OverlayOptions } from "./overlay";
 import { Result } from "../common/dto";
@@ -8,7 +8,7 @@ export interface IFrameWindowOptions extends WindowOptions {
     url?: string;
 }
 
-export default class IFrameWindow extends Window {
+export default class IFrameWindow extends DialogWindow {
     protected sourceUrl: string;
     protected iframeEl: HTMLIFrameElement;
     protected iframeId: string;
@@ -79,9 +79,9 @@ export default class IFrameWindow extends Window {
 
     protected onHeaderCloseButtonClick(event: MouseEvent): void {
         const window = this.iframeEl.contentWindow;
-        const overlayjsNs = (window as any).Overlayjs;
+        const clientNs = (window as any).OjsClient;
         
-        if (window && overlayjsNs && overlayjsNs.getIFrameId && overlayjsNs.getIFrameId() !== undefined) {
+        if (window && clientNs && clientNs.getIFrameId && clientNs.getIFrameId() !== undefined) {
             this.iframeEl.contentWindow.postMessage({
                 command: "headerCloseButtonClicked"
             }, "*");
