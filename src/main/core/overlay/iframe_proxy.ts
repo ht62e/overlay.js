@@ -149,11 +149,11 @@ class IFrameContext implements DocumentContext {
             this.handlerBindThis = this.iFrameOnLoadHandler.bind(this);
             const window = this.iframeEl.contentWindow as any;
 
+            this.iframeEl.addEventListener("load", this.handlerBindThis);
+
             if (window && window.OjsClient && window.OjsClient.firedOnLoadEvent) {
-                //すでにロード済み
+                //すでにロード済みは手動で起動　※iframe内ページ遷移用にloadイベントは必要
                 this.iFrameOnLoadHandler(null);
-            } else {
-                this.iframeEl.addEventListener("load", this.handlerBindThis);
             }
     }
 
