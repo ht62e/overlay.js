@@ -39,7 +39,7 @@ export default class MessageDialog extends Overlay {
 
     constructor(name: string, options?: MessageDialogOptions) {
         let opt = options ? options : {};
-        if (opt.fixPositionToCenter === undefined) opt.fixPositionToCenter = true;
+        if (opt.fixPositionToCenterOfViewPort === undefined) opt.fixPositionToCenterOfViewPort = true;
 
         if (!(opt.size && opt.size.cssHeight)) {
             opt.size = {

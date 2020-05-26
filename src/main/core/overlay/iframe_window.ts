@@ -43,6 +43,7 @@ export default class IFrameWindow extends DialogWindow {
     public async load(isModal: boolean, params?: any): Promise<Result> {
         this.iframeEl.src = this.sourceUrl;
         this.iframeEl.style.pointerEvents = "inherit";
+
         this.outerFrameTransitionDriver.show();
         
         return this.waitForOverlayClose();

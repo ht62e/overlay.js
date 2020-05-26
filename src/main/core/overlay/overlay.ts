@@ -5,7 +5,7 @@ import { Result } from "../common/dto";
 
 export interface OverlayOptions {
     size?: CssSize;
-    fixPositionToCenter?: boolean;
+    fixPositionToCenterOfViewPort?: boolean;
     maxWidthRatioOfViewPort?: number;
 }
 
@@ -261,7 +261,7 @@ export default abstract class Overlay {
     }
 
     public onViewPortResize(viewPortWidth: number, viewPortHeight: number) {
-        if (this.options.fixPositionToCenter) {
+        if (this.options.fixPositionToCenterOfViewPort) {
             this.moveToViewPortCenter();
         }
     }
@@ -306,10 +306,10 @@ export default abstract class Overlay {
         this.changePosition(x, y);
     }
 
-    public resize(width: string, height: string): void {
-        this.currentSize = new CssSize(width, height);
-        this.frameEl.style.width = width;
-        this.frameEl.style.height = height;
+    public resize(cssWidth: string, cssHeight: string, keepCenterPosition?: boolean): void {
+        this.currentSize = new CssSize(cssWidth, cssHeight);
+        this.frameEl.style.width = cssWidth;
+        this.frameEl.style.height = cssHeight;
         this.cacheCurrentOffsetSize();
     }
 

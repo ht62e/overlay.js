@@ -8,6 +8,7 @@ import { Point, CssSize } from "../common/types";
 export interface OverlayOpenConfig {
     size? : CssSize;
     position?: Point;
+    popupInCenterOfViewPort?: boolean;
     modal?: boolean;
     forceForeground? : boolean;
     autoCloseWhenOutfocus?: boolean;
@@ -252,8 +253,9 @@ export default class OverlayManager {
         const status = this.statusTable.get(overlayName);
         status.isModal = !!config.modal;
 
-        if (config.size) overlay.resize(config.size.cssWidth, config.size.cssHeight);
+        if (config.size) overlay.resize(config.size.cssWidth, config.size.cssHeight, true);
         if (config.position) overlay.changePosition(config.position.x, config.position.y);
+        if (config.popupInCenterOfViewPort) overlay.moveToViewPortCenter();
 
         this.activateSpecificOverlay(overlayName);
         const result = await overlay.load(config.modal, params);

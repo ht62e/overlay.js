@@ -187,10 +187,11 @@ export default abstract class ResizableOverlay extends Overlay {
         this.overlayManager.changeContentsSelectable(false);
     }
 
-    public resize(width: string, height: string): void {
+    public resize(width: string, height: string, keepCenterPosition?: boolean): void {
         this.currentSize = new CssSize(width, height);
         this.frameEl.style.width = "calc(" + width + " + " + (ResizableOverlay.resizeHandleThicknessPx * 2) + "px)";
         this.frameEl.style.height = "calc(" + height + " + " + (ResizableOverlay.resizeHandleThicknessPx * 2) + "px)";
+        this.cacheCurrentOffsetSize();
     }
 
     public setResizable(resizable: boolean) {
