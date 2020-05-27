@@ -11,7 +11,8 @@ export interface IFrameWindowOptions extends WindowOptions {
 export default class IFrameWindow extends DialogWindow {
     protected sourceUrl: string;
     protected iframeEl: HTMLIFrameElement;
-    protected iframeId: string;
+    protected frameId: string;
+    protected loadParams: any;
 
     constructor(name: string, url: string, options?: IFrameWindowOptions) {
         super(name, options);
@@ -30,17 +31,18 @@ export default class IFrameWindow extends DialogWindow {
     //Override
     public mount(overlayManager: OverlayManager): void {
         super.mount(overlayManager);
-        this.iframeId = IFrameProxy.getInstance().register(
+        this.frameId = IFrameProxy.getInstance().register(
             this.iframeEl, this.overlayManager, this, this.onIFrameLoaded.bind(this));
     }
 
     //Override
     public unmount(): void {
         super.unmount();
-        IFrameProxy.getInstance().unregister(this.iframeId);
+        IFrameProxy.getInstance().unregister(this.frameId);
     }
 
     public async load(isModal: boolean, params?: any): Promise<Result> {
+        this.loadParams = params;
         this.iframeEl.src = this.sourceUrl;
         this.iframeEl.style.pointerEvents = "inherit";
 
@@ -56,6 +58,10 @@ export default class IFrameWindow extends DialogWindow {
         } else {
             this.iframeEl.src = "about:blank";
         }
+    }
+
+    public getLoadParams(): any {
+        return this.loadParams;
     }
 
     public onIFrameLoaded(): void {

@@ -44,16 +44,17 @@ if (window !== window.parent) {
         CONFIRM_DELETE: 12,
     };
 
-    OjsClient.getIFrameId = function() {
-        return window.OjsClient.iframeId;
+    OjsClient.getFrameId = function() {
+        return window.OjsClient.frameId;
     }
 
     window.addEventListener("message", function(e) {
         const data = e.data;
         switch (data.command) {
-            case "dispatchIFrameId":
-                OjsClient.iframeId = data.params;
+            case "dispatchConfig":
+                OjsClient.frameId = data.params.frameId;
                 OjsClient.runAllPendingCallers();
+                if (OjsClient.onload) OjsClient.onload(data.params.loadParams);
                 break;
             case "headerCloseButtonClicked":
                 if (window["onCloseRequest"]) {
@@ -110,7 +111,7 @@ if (window !== window.parent) {
     }
     
     OjsClient.tryAndPendPostMessage = function(func, args, promiseResolve, promiseReject) {
-    	if (!OjsClient.getIFrameId()) {            
+    	if (!OjsClient.getFrameId()) {            
             OjsClient.pendingCallers.push({
                 func: func, args: args, promiseResolve: promiseResolve, promiseReject: promiseReject
             });
@@ -126,7 +127,7 @@ if (window !== window.parent) {
         window.OjsClient.hostContext.postMessage({
             destination: destination,
             params: data,
-            sender: OjsClient.getIFrameId(),
+            sender: OjsClient.getFrameId(),
             listenerClass: "OverlayManager"
         }, "*");
     }
@@ -137,7 +138,7 @@ if (window !== window.parent) {
         window.OjsClient.hostContext.postMessage({
             destination: "*",
             params: data,
-            sender: OjsClient.getIFrameId(),
+            sender: OjsClient.getFrameId(),
             listenerClass: "OverlayManager"
         }, "*");   
     }
@@ -148,7 +149,7 @@ if (window !== window.parent) {
         window.OjsClient.hostContext.postMessage({
             command: "changeWindowCaption",
             params: {caption: caption},
-            sender: OjsClient.getIFrameId(),
+            sender: OjsClient.getFrameId(),
             listenerClass: "IFrameWindow"
         }, "*");
     }
@@ -159,7 +160,7 @@ if (window !== window.parent) {
         window.OjsClient.hostContext.postMessage({
             command: "ok",
             params: data,
-            sender: OjsClient.getIFrameId(),
+            sender: OjsClient.getFrameId(),
             listenerClass: "IFrameWindow"
         }, "*");
     }
@@ -169,7 +170,7 @@ if (window !== window.parent) {
     	
         window.OjsClient.hostContext.postMessage({
             command: "cancel",
-            sender: OjsClient.getIFrameId(),
+            sender: OjsClient.getFrameId(),
             listenerClass: "IFrameWindow"
         }, "*");
     }
@@ -207,7 +208,7 @@ if (window !== window.parent) {
         window.OjsClient.hostContext.postMessage({
             command: command,
             params: postMsgParams,
-            sender: OjsClient.getIFrameId(),
+            sender: OjsClient.getFrameId(),
             listenerClass: "IFrameWindow"
         }, "*");
 
@@ -222,12 +223,14 @@ if (window !== window.parent) {
         return OjsClient._open(name, "openAsModal", params, openConfig);
     }
 
-    OjsClient.openNewIFrameWindow = function(name, url, openConfig) {
-        return OjsClient._open(name, "openNewIFrameWindow", {url: url}, openConfig);
+    OjsClient.openNewIFrameWindow = function(name, url, params, openConfig) {
+        const loadParams = Object.assign({url: url}, params);
+        return OjsClient._open(name, "openNewIFrameWindow", loadParams, openConfig);
     }
 
-    OjsClient.openNewIFrameWindowAsModal = function(name, url, openConfig) {
-        return OjsClient._open(name, "openNewIFrameWindowAsModal", {url: url}, openConfig);
+    OjsClient.openNewIFrameWindowAsModal = function(name, url, params, openConfig) {
+        const loadParams = Object.assign({url: url}, params);
+        return OjsClient._open(name, "openNewIFrameWindowAsModal", loadParams, openConfig);
     }
 
     OjsClient.showLoadingOverlay = function(message, showProgressBar, progressRatio) {
@@ -238,14 +241,14 @@ if (window !== window.parent) {
                 showProgressBar: showProgressBar,
                 progressRatio: progressRatio
             },
-            sender: OjsClient.getIFrameId()
+            sender: OjsClient.getFrameId()
         }, "*");
     }
 
     OjsClient.hideLoadingOverlay = function() {
         window.OjsClient.hostContext.postMessage({
             command: "hideLoadingOverlay",
-            sender: OjsClient.getIFrameId()
+            sender: OjsClient.getFrameId()
         }, "*");
     }
 }
