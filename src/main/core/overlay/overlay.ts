@@ -7,6 +7,9 @@ export interface OverlayOptions {
     size?: CssSize;
     fixPositionToCenterOfViewPort?: boolean;
     maxWidthRatioOfViewPort?: number;
+    autoCloseOnOutfocus?: boolean;
+    subOverlay?: boolean;
+    forceCloseBeforeReopen?: boolean;
 }
 
 class EventAttachInfo {
@@ -182,6 +185,10 @@ export default abstract class Overlay {
         }
     }
 
+    public forceClose(): void {
+        this.close({ isOk: false });
+    }
+
     public destory(): void {
         this.detachAllEventListeners();
     }
@@ -204,6 +211,7 @@ export default abstract class Overlay {
 
     protected onOuterMouseDown(event: MouseEvent) {
         if (this.inactiveModalMode) return;
+        if (this.isActive()) this.overlayManager.cancelAutoClosingOnlyOnce();
         this.overlayManager.overlayMouseDownEventHandler(this.name);
     }
 
@@ -280,6 +288,10 @@ export default abstract class Overlay {
 
     public getName(): string {
         return this.name;
+    }
+
+    public getOptions(): OverlayOptions {
+        return this.options;
     }
 
     public getZIndex(): number {

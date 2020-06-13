@@ -2,7 +2,7 @@
 <html lang="ja">
 
 <head>
-    <script src="../src-for-client/overlayjs-iframe-client.js"></script>
+    <script src="../src-client/overlayjs-client.js"></script>
     <script src="./lib/promise-7.0.4.min.js"></script>
 <script>
 
@@ -12,13 +12,13 @@
 
     window.addEventListener("load", function(e) {
         document.getElementById("ok_button").addEventListener("click", function(e) {
-            Overlayjs.returnAndClose("ABC123");
+            OjsClient.returnAndClose("ABC123");
         });
         document.getElementById("cancel_button").addEventListener("click", function(e) {
-            Overlayjs.cancelAndClose();
+            OjsClient.cancelAndClose();
         });
         document.getElementById("open1_button").addEventListener("click", function(e) {
-            Overlayjs.openNewIFrameWindowAsModal("modal2", "./window3.html");
+            OjsClient.openNewIFrameWindowAsModal("modal2", "./window3.html");
         });
     });
 

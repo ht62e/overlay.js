@@ -53,11 +53,12 @@ if (document["documentMode"]) {
     Common.isMsIE = true;
 }
 
-window.addEventListener("mousemove", (e: MouseEvent) => {
+var __captureMousePointerPosition = function(e: MouseEvent) {
     Common.currentMouseClientX = e.clientX;
     Common.currentMouseClientY = e.clientY;
-});
+}
 
+window.addEventListener("mousemove", __captureMousePointerPosition);
 
 var __embedSvgImage = function() {
     let s = "";

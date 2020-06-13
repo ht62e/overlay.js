@@ -11,8 +11,6 @@ export interface OverlayOpenConfig {
     popupInCenterOfViewPort?: boolean;
     modal?: boolean;
     forceForeground? : boolean;
-    autoCloseWhenOutfocus?: boolean;
-    parentOverlay?: Overlay;
 }
 
 class OverlayStatus {
@@ -57,7 +55,9 @@ export default class OverlayManager {
 
     private contentsSelectable: boolean = true;
 
-    private requestedAutoCloseCancelOnlyOnce: boolean = false;
+    private requestedCancelAutoClosingOnlyOnce: boolean = false;
+
+    private waitOpenResolves: Map<string, Array<(value?: void | PromiseLike<void>) => void>> = new Map();
 
     private onFocusInBindedThis: (event: FocusEvent) => void;
     private onMouseDownBindedThis: (event: MouseEvent) => void;
@@ -106,7 +106,7 @@ export default class OverlayManager {
         this.setViewPortElement(viewPortElement);
 
         this.defaultWaitScreen = new LoadingOverlay();
-        this.mountPermanently(this.defaultWaitScreen, null);
+        this.mountPermanently(this.defaultWaitScreen);
 
         IFrameProxy.getInstance().registerHost(this);
     }
@@ -127,18 +127,17 @@ export default class OverlayManager {
     }  
 
     private onMouseDown(event: MouseEvent) {
-        if (!this.requestedAutoCloseCancelOnlyOnce) {
+        if (!this.requestedCancelAutoClosingOnlyOnce) {
             this.statusTable.forEach((status: OverlayStatus, name: string) => {
-                if (status.isVisible && this.configTable.get(name).autoCloseWhenOutfocus) {
-                    const overlay = this.overlays.get(name);
-                    // const module = overlay.getChildContainer().getCurrentModule();
-                    // module.exit(ActionType.CANCEL).then(exited => {
-                    //     if (exited) overlay.close();
-                    // });
+                const overlay = this.overlays.get(name);
+                if (status.isVisible && overlay.getOptions().autoCloseOnOutfocus) {
+                    overlay.close({
+                        isOk: false
+                    });
                 }
             });
         }
-        this.requestedAutoCloseCancelOnlyOnce = false;
+        this.requestedCancelAutoClosingOnlyOnce = false;
     }
 
 
@@ -182,6 +181,7 @@ export default class OverlayManager {
 
     public setViewPortElement(element: HTMLElement) {
         this.viewPortEl = element;
+        element.style.overflow = "hidden";
         element.appendChild(this.modalBackgroundLayer);
     }
 
@@ -218,9 +218,9 @@ export default class OverlayManager {
         this.configTable.set(overlay.getName(), overlayConfig ? overlayConfig : {});
     }
 
-    public mountPermanently(overlay: Overlay, overlayConfig: OverlayOpenConfig): void {
+    public mountPermanently(overlay: Overlay): void {
         this.permanentMountTable.set(overlay.getName(), true);
-        this.register(overlay, overlayConfig);
+        this.register(overlay);
     }
 
     public changeContentsSelectable(selectable: boolean) {
@@ -239,7 +239,30 @@ export default class OverlayManager {
         }
     }
 
+    private async waitOpen(overlay: Overlay): Promise<void> {
+        return new Promise(resovle => {
+            const overlayName = overlay.getName();
+            if (!this.waitOpenResolves.has(overlayName)) {
+                this.waitOpenResolves.set(overlayName, []);
+            }
+            this.waitOpenResolves.get(overlayName).push(resovle);
+            if (this.waitOpenResolves.get(overlayName).length === 1) resovle();
+        });
+    }
+
+    private unlockWaitOpen(overlay: Overlay) {
+        const overlayName = overlay.getName();
+        const resolves = this.waitOpenResolves.get(overlayName);
+        resolves.shift();
+        if (resolves.length > 0) resolves[0]();
+    }
+
     private async _open(overlay: Overlay, config: OverlayOpenConfig, params?: any): Promise<Result> {
+        if (overlay.isActive() && overlay.getOptions().forceCloseBeforeReopen) {
+            overlay.forceClose();
+        }
+        await this.waitOpen(overlay);
+        
         if (!config) config = {};
         const overlayName = overlay.getName();
         const enableInstantMount: boolean = !this.permanentMountTable.has(overlayName);
@@ -269,6 +292,8 @@ export default class OverlayManager {
             this.unregister(overlay);
         }
 
+        this.unlockWaitOpen(overlay);
+
         return result;
     }
 
@@ -295,8 +320,7 @@ export default class OverlayManager {
 
     public showLoadingOverlay(message, showProgressBar, progressRatio): Promise<Result> {
         const config: OverlayOpenConfig = {
-            forceForeground: true,
-            parentOverlay: this.activeOverlay
+            forceForeground: true
         }
         return this._open(this.defaultWaitScreen, config, {
             message: message, showProgressBar: showProgressBar, progressRatio: progressRatio
@@ -334,6 +358,7 @@ export default class OverlayManager {
         });
 
         let visibleOverlayCounter = 0;
+        let subVisibleOverlayCounter = 0;
         let previousOverlayConfig: OverlayOpenConfig = null;
         let previousOverlay: Overlay = null;
 
@@ -344,23 +369,29 @@ export default class OverlayManager {
             if (overlayStatus.isVisible) {
                 if (overlayConfig.forceForeground) {
                     overlay.changeZIndex(OverlayManager.FOREGROUND_Z_INDEX);
-                } else if (overlayConfig.autoCloseWhenOutfocus) {
+                } else if (overlay.getOptions().autoCloseOnOutfocus) {
                     overlay.changeZIndex(OverlayManager.AUTO_CLOSEABLE_START_Z_INDEX + visibleCount--);
                 } else if (overlayStatus.isModal) {
                     overlay.changeZIndex(OverlayManager.MODAL_START_Z_INDEX + visibleCount--);
                 } else {
                     overlay.changeZIndex(OverlayManager.DEFAULT_OVERLAY_START_Z_INDEX + visibleCount--);
                 }
-                if (visibleOverlayCounter === 0 || 
-                    (previousOverlay.isActive() && overlay === previousOverlayConfig.parentOverlay)) {
+
+                if (visibleOverlayCounter - subVisibleOverlayCounter === 0) {
                     overlay.activate();
-                    this.activeOverlay = overlay;
+                    
                 } else {
                     overlay.inactivate(overlayStatus.isModal);
                 }
+
+                if (visibleOverlayCounter === 0) {
+                    this.activeOverlay = overlay;
+                }
+
                 previousOverlayConfig = overlayConfig;
                 previousOverlay = overlay;
                 ++visibleOverlayCounter;
+                if (overlay.getOptions().subOverlay) ++subVisibleOverlayCounter;
             }
         });
 
@@ -387,7 +418,7 @@ export default class OverlayManager {
     }
 
     public cancelAutoClosingOnlyOnce() {
-        this.requestedAutoCloseCancelOnlyOnce = true;
+        this.requestedCancelAutoClosingOnlyOnce = true;
     }
 
     public getOverlay(overlayName: string): Overlay {

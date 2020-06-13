@@ -5,7 +5,9 @@ import OverlayManager from "./overlay_manager";
 
 export interface DrawerOptions extends OverlayOptions {
     dockType?: DockType;
-    dockSize?: string;
+    dockCssSize?: string;
+    originSideCssOffset?: string;
+    originFarSideCssOffset?: string;
 }
 
 export enum DockType {
@@ -13,47 +15,36 @@ export enum DockType {
 }
 
 export default class Drawer extends Overlay {
-    protected contentEl: HTMLDivElement;
+    protected contentEl: HTMLElement;
     protected onetimeSize: Size;
 
     protected dockType: DockType;
     protected dockSize: string;
+    protected originSideCssOffset: string;
+    protected originFarSideCssOffset: string;
 
-    constructor(name: string, templateRootElement: HTMLElement, options: DrawerOptions) {
+    constructor(name: string, contentEl: HTMLElement, options?: DrawerOptions) {
+        if (!options) options = {};
+
         super(name, options);
 
-        this.dockType = options.dockType !== undefined ? options.dockType: DockType.Left;
-        this.dockSize = options.dockSize !== undefined ? options.dockSize: "33%";
-    }
+        if (options.autoCloseOnOutfocus === undefined) options.autoCloseOnOutfocus = true;
 
-    public mount(overlayManager: OverlayManager): void {
-        super.mount(overlayManager);
+        this.contentEl = contentEl;
+        this.dockType = options.dockType !== undefined ? options.dockType: DockType.Left;
+        this.dockSize = options.dockCssSize !== undefined ? options.dockCssSize: "25%";
+        this.originSideCssOffset = options.originSideCssOffset;
+        this.originFarSideCssOffset = options.originFarSideCssOffset;
 
         this.changeDockType(this.dockType);
 
-        let _s: HTMLDivElement;
-        _s = this.contentEl = document.createElement("div");
-        _s.className = "";
-        _s.style.position = "relative";
-        _s.style.width = "100%";
-        _s.style.height = "100%";
-
         this.containerEl.className = "ojs_drawer_container";
-        this.containerEl.appendChild(this.contentEl);
-        this.attachEventListener(this.containerEl, "mousedown", this.onContentMouseDown);
-        
+        this.containerEl.appendChild(this.contentEl);   
     }
 
     public changeDockType(dockType: DockType) {
-        //サイズ変更
-        if (dockType === DockType.Left || dockType === DockType.Right) {
-            this.frameEl.style.width = this.dockSize;
-            this.frameEl.style.height = "100%";
-            
-        } else if (dockType === DockType.Top || dockType === DockType.Bottom) {
-            this.frameEl.style.width = "100%";
-            this.frameEl.style.height = this.dockSize;
-        }
+        let heightAdjust: string;
+        let widthAdjust: string;
 
         //位置変更
         this.frameEl.style.left = "";
@@ -68,12 +59,53 @@ export default class Drawer extends Overlay {
             //right=0パターン(DockType.Right)
             this.frameEl.style.right = "0px";
         }
+
         if (dockType === DockType.Left || dockType === DockType.Right || dockType === DockType.Top) {
             //top=0パターン
             this.frameEl.style.top = "0px";
         } else {
             //bottom=0パターン(DockType.Bottom)
             this.frameEl.style.bottom = "0px";
+        }
+
+        //オフセット（マージン）
+        if (this.originSideCssOffset) {
+            const _os = this.originSideCssOffset;
+            if (dockType === DockType.Left || dockType === DockType.Right) {
+                this.frameEl.style.top = _os;
+                this.frameEl.style.bottom = "";
+            } else if (dockType === DockType.Top || dockType === DockType.Bottom) {
+                this.frameEl.style.left = _os;
+                this.frameEl.style.right = "";
+            }
+            widthAdjust = _os;
+        } else if (this.originFarSideCssOffset) {
+            const _os = this.originFarSideCssOffset;
+            if (dockType === DockType.Left || dockType === DockType.Right) {
+                this.frameEl.style.top = "";
+                this.frameEl.style.bottom = _os;
+            } else if (dockType === DockType.Top || dockType === DockType.Bottom) {
+                this.frameEl.style.left = "";
+                this.frameEl.style.right = _os;
+            }
+            heightAdjust = _os;
+        }
+
+        //サイズ変更
+        if (dockType === DockType.Left || dockType === DockType.Right) {
+            this.frameEl.style.width = this.dockSize;
+            if (heightAdjust) {
+                this.frameEl.style.height = "calc(100% - " + heightAdjust + ")";
+            } else {
+                this.frameEl.style.height = "100%";
+            }            
+        } else if (dockType === DockType.Top || dockType === DockType.Bottom) {
+            this.frameEl.style.height = this.dockSize;
+            if (widthAdjust) {
+                this.frameEl.style.width = "calc(100% - " + widthAdjust + ")";
+            } else {
+                this.frameEl.style.width = "100%";
+            }
         }
 
         //TransitionDriverクラス変更
@@ -107,8 +139,4 @@ export default class Drawer extends Overlay {
         return Promise.resolve<Result>(null);
     }
 
-    protected onContentMouseDown(event: MouseEvent) {
-        this.overlayManager.cancelAutoClosingOnlyOnce();
-
-    }
 }

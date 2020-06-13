@@ -1,1 +1,0 @@
-console.log("◆◆◆TestLib.js is loaded.◆◆◆");

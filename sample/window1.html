@@ -3,7 +3,7 @@
 
 <head>
     <title>タイトル1</title>
-<script src="../src-for-client/overlayjs-iframe-client.js"></script>
+<script src="../src-client/overlayjs-client.js"></script>
 <script src="./lib/promise-7.0.4.min.js"></script>
 <script>
 
@@ -13,13 +13,13 @@
 
     window.addEventListener("load", function(e) {
         document.getElementById("ok_button").addEventListener("click", function(e) {
-            Overlayjs.returnAndClose("ABC123");
+            OjsClient.returnAndClose("ABC123");
         });
         document.getElementById("cancel_button").addEventListener("click", function(e) {
-            Overlayjs.cancelAndClose();
+            OjsClient.cancelAndClose();
         });
         document.getElementById("open1_button").addEventListener("click", function(e) {
-            Overlayjs.openNewIFrameWindowAsModal("modal1", "./window2.html", {size: {cssWidth: "800px", cssHeight: "200px"}}).then(function(d) {
+            OjsClient.openNewIFrameWindowAsModal("modal1", "./window2.html", {size: {cssWidth: "800px", cssHeight: "200px"}}).then(function(d) {
                 document.getElementById("log").innerHTML = JSON.stringify(d);
             }).catch(function(error) {
                 document.getElementById("log").innerHTML = "キャンセル";
@@ -27,14 +27,18 @@
         });
 
         document.getElementById("showLoadingOverlay").addEventListener("click", function(e) {
-            Overlayjs.showLoadingOverlay("testest");
-            Overlayjs.hideLoadingOverlay();
-            Overlayjs.showLoadingOverlay("testest");
-            setTimeout(function(){Overlayjs.hideLoadingOverlay()}, 1000);
+            OjsClient.showLoadingOverlay("testest");
+            OjsClient.hideLoadingOverlay();
+            OjsClient.showLoadingOverlay("testest");
+            setTimeout(function(){OjsClient.hideLoadingOverlay()}, 1000);
             // window.setTimeout(function() {
             //     Overlayjs.hideLoadingOverlay();
             // }, 1000)
         });
+
+        document.getElementById("open_contextmenu").addEventListener("click", function(e) {
+            OjsClient.open("contextmenu");
+        });  
 
     });
 </script>
@@ -49,5 +53,6 @@
 <input type="button" id="ok_button" value="OK">
 <input type="button" id="cancel_button" value="キャンセル">
 <input type="button" id="showLoadingOverlay" value="showLoadingOverlay">
+<input type="button" id="open_contextmenu" value="open contextmenu">
 </body>
 </html>

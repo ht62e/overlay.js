@@ -1,30 +1,29 @@
 import Overlay, { OverlayOptions } from "./overlay";
-import { Size } from "../common/types";
+import { Size, CssSize } from "../common/types";
 import { Result } from "../common/dto";
 import Common from "../common/common";
-import OverlayManager from "./overlay_manager";
 
 export default class ContextMenu extends Overlay {
-    protected contentEl: HTMLDivElement;
+    protected contentEl: HTMLElement;
     protected onetimeSize: Size;
 
-    constructor(name: string, options: OverlayOptions) {
+    protected static DEFAULT_SIZE_WIDTH: string = "200px";
+    protected static DEFAULT_SIZE_HEIGHT: string = "auto";
+
+    constructor(name: string, contentEl: HTMLElement, options: OverlayOptions) {
+        if (!options) options = {};
+
+        if (!options.size) {
+            options.size = new CssSize(ContextMenu.DEFAULT_SIZE_WIDTH, ContextMenu.DEFAULT_SIZE_HEIGHT);
+        }
+
         super(name, options);
-    }
 
-    public mount(overlayManager: OverlayManager): void {
-        super.mount(overlayManager);
+        options.subOverlay = true;
+        options.forceCloseBeforeReopen = true;
+        if (options.autoCloseOnOutfocus === undefined) options.autoCloseOnOutfocus = true;
 
-        let _s: HTMLDivElement;
-        _s = this.contentEl = document.createElement("div");
-        _s.className = "";
-        _s.style.position = "relative";
-        _s.style.width = "100%";
-        _s.style.height = "100%";
-
-        this.containerEl.className = "ojs_context_menu_container";
-        this.containerEl.appendChild(this.contentEl);
-        this.attachEventListener(this.containerEl, "mousedown", this.onContentMouseDown);
+        this.contentEl = contentEl;
 
         this.outerFrameTransitionDriver.setCustomTransitionClasses({
             standyStateClass: "ojs_context_menu_standy_state",
@@ -32,6 +31,9 @@ export default class ContextMenu extends Overlay {
             leaveTransitionClass: "ojs_context_menu_leave_transition",
             endStateClass: "ojs_context_menu_end_state"
         });
+
+        this.containerEl.className = "ojs_context_menu_container";
+        this.containerEl.appendChild(this.contentEl);
     }
     
     public load(isModal: boolean, params?: any): Promise<Result> {
@@ -39,6 +41,9 @@ export default class ContextMenu extends Overlay {
 
         x = Common.currentMouseClientX;
         y = Common.currentMouseClientY;
+
+        if (!this.offsetSizeCache) this.cacheCurrentOffsetSize();
+
         const widthPx = this.offsetSizeCache.width;
         const heightPx = this.offsetSizeCache.height;
 
@@ -101,8 +106,4 @@ export default class ContextMenu extends Overlay {
         return Promise.resolve<Result>(null);
     }
 
-    protected onContentMouseDown(event: MouseEvent) {
-        this.overlayManager.cancelAutoClosingOnlyOnce();
-
-    }
 }

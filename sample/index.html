@@ -49,6 +49,23 @@
             });
 
             //om.showLoadingOverlay("メッセージ");
+
+            const drawer = new Overlayjs.Drawer("sidemenu", document.getElementById("sidemenu"), {
+                originFarSideCssOffset: "50px"
+            });
+
+            const contextMenu = new Overlayjs.ContextMenu("contextmenu", document.getElementById("contextmenu"));
+
+            om.mountPermanently(drawer);
+            om.mountPermanently(contextMenu);
+
+            document.getElementById("open_sidemenu").addEventListener("click", function(e) {
+                om.openAsModal(drawer);
+            });
+
+            document.getElementById("open_contextmenu").addEventListener("click", function(e) {
+                om.open(contextMenu);
+            });            
             
         }
 
@@ -73,12 +90,33 @@
             
         }
 
+        #sidemenu {
+            background-color: #808080;
+            width: 100%;
+            height: 100%;
+        }
+
+        #contextmenu {
+            background-color: #808080;
+            width: 100%;
+            height: 100%;
+        }
+
     </style>
 </head>
 
 <body>
     <div id="app" style="width: 100%; height: 100%;">
-
+        <input type="button" id="open_sidemenu" value="open sidemenu">
+        <input type="button" id="open_contextmenu" value="open contextmenu">
+    </div>
+    <div id="sidemenu">side menu</div>
+    <div id="contextmenu">
+        <div>context menu1</div>
+        <div>context menu2</div>
+        <div>context menu3</div>
+        <div>context menu4</div>
+        <div>context menu5</div>
     </div>
 </body>
 

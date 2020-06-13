@@ -66,28 +66,27 @@ window.addEventListener("message", function(e) {
             OjsClient.receiveMessageEventListener(data.params);
             break;
         case "return":
-            OjsClient.resolveAwait(data.sender, data.params);
+            OjsClient.resolvePromiseTrigger(data.sender, data.params);
             break;
     }
 });
 
-OjsClient.registerAwait = function(overlayName, promiseResolve) {
-    OjsClient.awaitCallTable[overlayName] = promiseResolve;
+OjsClient.addPromiseTrigger = function(overlayName, promiseResolve, promiseReject) {
+    if (!OjsClient.awaitCallTable[overlayName]) {
+        OjsClient.awaitCallTable[overlayName] = []; 
+    }
+    OjsClient.awaitCallTable[overlayName].push({
+        resolve: promiseResolve,
+        reject: promiseReject
+    });
 }
 
-OjsClient.resolveAwait = function(overlayName, returnValue) {
-    const obj = OjsClient.awaitCallTable[overlayName];
-
+OjsClient.resolvePromiseTrigger = function(overlayName, returnValue) {
+    const trigger = OjsClient.awaitCallTable[overlayName].shift();
     if (returnValue.isOk) {
-        obj.resolve(returnValue);
+        trigger.resolve(returnValue);
     } else {
-        obj.reject();
-    }
-    
-    delete OjsClient.awaitCallTable[overlayName];
-
-    if (OjsClient.pendingCallers.length > 0) {
-        OjsClient.runAllPendingCallers();
+        trigger.reject();
     }
 }
 
@@ -188,21 +187,18 @@ OjsClient._open = function(name, command, params, openConfig, _promiseResolve, _
         });
     }
 
-    if (!OjsClient.tryAndPendPostMessage(OjsClient._open, arguments, promiseResolve, promiseReject)) return promise;
-
-    
-    if (OjsClient.awaitCallTable[name]) {
-        OjsClient.pendPostMessage(OjsClient._open, arguments, promiseResolve, promiseReject);
+    //FrameID未割当時に対する待機
+    if (!OjsClient.tryAndPendPostMessage(OjsClient._open, arguments, promiseResolve, promiseReject)) {
         return promise;
     }
-    
-    OjsClient.registerAwait(name, { resolve: promiseResolve, reject: promiseReject });
 
     var postMsgParams = {
         name: name,
         loadParams: params,
         openConfig: openConfig
     }
+
+    OjsClient.addPromiseTrigger(name, promiseResolve, promiseReject);
 
     window.OjsClient.hostContext.postMessage({
         command: command,

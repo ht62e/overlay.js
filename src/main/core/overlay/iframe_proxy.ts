@@ -2,6 +2,7 @@ import { IFrameWindow, OverlayManager } from "../../overlay";
 import { Result } from "../common/dto";
 import Overlay from "./overlay";
 import DialogWindow from "./dialog_window";
+import Common from "../common/common";
 
 
 export default class IFrameProxy {
@@ -57,7 +58,7 @@ export default class IFrameProxy {
 
     private postMessageHandler(e: MessageEvent) {
         if (!e.data || !e.data.command || e.data.listenerClass !== "IFrameWindow") return;
-        if (!e.data.sender) throw new Error("iFrameIDが未指定です。loadイベントハンドラ実行後に実行する必要があります。");
+        if (!e.data.sender) throw new Error("FrameIDが未指定です。loadイベントハンドラ実行後に実行する必要があります。");
 
         const data = e.data;
         const params = data.params ? data.params : {};
@@ -136,13 +137,12 @@ interface DocumentContext {
     getDocumentWindow(): Window;
     getOverlayManager(): OverlayManager;
     getHolderOverlay(): Overlay;
-    setLoadParams(params: any);
     destory();
 }
 
 class IFrameContext implements DocumentContext {
     private handlerBindThis;
-    private loadParams: any;
+    private mouseMoveEventHanderBindThis;
 
     constructor( 
         private iframeEl: HTMLIFrameElement,
@@ -150,7 +150,7 @@ class IFrameContext implements DocumentContext {
         private overlayManager: OverlayManager,
         private holderOverlay: Overlay,
         private overlaysLoadEventHandler: () => void) {
-
+            this.mouseMoveEventHanderBindThis = this.mouseMoveEventHander.bind(this);
             this.handlerBindThis = this.iFrameOnLoadHandler.bind(this);
             const window = this.iframeEl.contentWindow as any;
 
@@ -162,16 +162,15 @@ class IFrameContext implements DocumentContext {
             }
     }
 
-    public setLoadParams(params: any) {
-        this.loadParams = params;
-    }
-
     private iFrameOnLoadHandler(e: Event): void {
         const window = this.iframeEl.contentWindow;
         let loadParams;
+
         if (this.holderOverlay && this.holderOverlay instanceof IFrameWindow) {
             loadParams = (this.holderOverlay as IFrameWindow).getLoadParams();
         }
+
+        window.addEventListener("mousemove", this.mouseMoveEventHanderBindThis);
 
         window.postMessage({
             command: "dispatchConfig",
@@ -189,6 +188,12 @@ class IFrameContext implements DocumentContext {
         }
     }
 
+    private mouseMoveEventHander(e: MouseEvent): void {
+        const rect: DOMRect = this.iframeEl.getBoundingClientRect();
+        Common.currentMouseClientX = e.clientX + rect.left;
+        Common.currentMouseClientY = e.clientY + rect.top;
+    }
+
     public getDocumentWindow(): Window {
         return this.iframeEl.contentWindow;
     }
@@ -203,6 +208,7 @@ class IFrameContext implements DocumentContext {
 
     public destory() {
         this.iframeEl.removeEventListener("load", this.handlerBindThis);
+        this.mouseMoveEventHanderBindThis = null;
     }
 }
 
@@ -220,10 +226,6 @@ class HostContext implements DocumentContext {
             } else {
                 window.addEventListener("load", this.handlerBindThis);
             }
-    }
-
-    public setLoadParams(params: any) {
-        
     }
 
     private iFrameOnLoadHandler(e: Event): void {

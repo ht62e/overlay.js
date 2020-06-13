@@ -88,14 +88,12 @@ export default class IFrameWindow extends DialogWindow {
         const window = this.iframeEl.contentWindow;
         const clientNs = (window as any).OjsClient;
         
-        if (window && clientNs && clientNs.getIFrameId && clientNs.getIFrameId() !== undefined) {
+        if (window && clientNs && clientNs.getFrameId && clientNs.getFrameId() !== undefined) {
             this.iframeEl.contentWindow.postMessage({
                 command: "headerCloseButtonClicked"
             }, "*");
         } else {
-            this.close({
-                isOk: false
-            });
+            this.forceClose();
         }
     }
 

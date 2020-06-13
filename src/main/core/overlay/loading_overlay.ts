@@ -11,7 +11,10 @@ export default class LoadingOverlay extends Overlay {
     protected progressEl: HTMLDivElement;
 
     constructor() {
-        const options: OverlayOptions = {size: new CssSize("100%", "100%")};
+        const options: OverlayOptions = {
+            size: new CssSize("100%", "100%"),
+            subOverlay: true
+        };
         super(LoadingOverlay.DEFAULT_NAME, options);
 
         let _el: HTMLDivElement;
