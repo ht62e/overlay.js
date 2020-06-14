@@ -124,7 +124,7 @@ export default class OverlayManager {
                 overlay.onReceiveMessage(data, senderOverlay);
             }
         });
-    }  
+    }
 
     private onMouseDown(event: MouseEvent) {
         if (!this.requestedCancelAutoClosingOnlyOnce) {
@@ -140,7 +140,9 @@ export default class OverlayManager {
         this.requestedCancelAutoClosingOnlyOnce = false;
     }
 
-
+    public handoverMouseDownEvent(event: MouseEvent) {
+        this.onMouseDown(event);
+    }
 
     private onMouseMove(event: MouseEvent) {
         let deltaX = event.screenX - this.previousMouseX;
@@ -378,7 +380,7 @@ export default class OverlayManager {
                 }
 
                 if (visibleOverlayCounter - subVisibleOverlayCounter === 0) {
-                    overlay.activate();
+                    overlay.activate(subVisibleOverlayCounter === 0);
                     
                 } else {
                     overlay.inactivate(overlayStatus.isModal);

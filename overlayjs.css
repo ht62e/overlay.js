@@ -8,23 +8,27 @@
 	transition-duration: 1200ms;
 } */
 
-.ojs_window_standy_state {
+.ojs_default_overlay_frame {
+	background-color: transparent;
+}
+
+.ojs_default_overlay_frame.standy_state {
     opacity: 0;
     transform: scale(0.98, 0.98) translateY(1.5%);
 }
 
-.ojs_window_enter_transition {
+.ojs_default_overlay_frame.enter_transition {
     transition-property: transform, opacity;
     transition-duration: 120ms;
 }
 
-.ojs_window_leave_transition {
+.ojs_default_overlay_frame.leave_transition {
 	transition-property: opacity, transform;
 	transition-duration: 120ms;
 	transition-timing-function: ease-in;
 }
 
-.ojs_window_end_state {
+.ojs_default_overlay_frame.end_state {
     opacity: 0;
     transform: scale(0.98, 0.98) translateY(1.5%);
 }
@@ -32,29 +36,39 @@
 
 
 
+.ojs_context_menu_frame {
+	background-color: transparent;
+}
+
+.ojs_context_menu_frame.standy_state {
+    opacity: 0;
+}
+
+.ojs_context_menu_frame.enter_transition {
+    transition-property: opacity;
+    transition-duration: 80ms;
+}
+
+.ojs_context_menu_frame.leave_transition {
+	transition-property: opacity;
+	transition-duration: 0ms;
+	transition-timing-function: ease-in;
+}
+
+.ojs_context_menu_frame.end_state {
+    opacity: 0;
+}
 
 .ojs_context_menu_container {
     box-shadow: 6px 6px 20px -2px rgba(0,0,0,0.4);
 }
 
 
-.ojs_context_menu_standy_state {
-    opacity: 0;
-}
 
-.ojs_context_menu_enter_transition {
-    transition-property: opacity;
-    transition-duration: 80ms;
-}
 
-.ojs_context_menu_leave_transition {
-	transition-property: opacity;
-	transition-duration: 0ms;
-	transition-timing-function: ease-in;
-}
 
-.ojs_context_menu_end_state {
-    opacity: 0;
+.ojs_drawer_container {
+	box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.25);
 }
 
 
@@ -275,6 +289,58 @@
 
 
 
+.ojs_local_wait_screen_layer {
+    background-color: rgba(255,255,255,0.45);
+}
+
+.ojs_local_wait_screen_layer.standy_state {
+    opacity: 0;
+}
+
+.ojs_local_wait_screen_layer.enter_transition {
+	transition-duration: 120ms;
+	transition-timing-function: ease;
+}
+
+.ojs_local_wait_screen_layer.leave_transition {
+	transition-duration: 120ms;
+	transition-timing-function: ease;
+}
+
+.ojs_local_wait_screen_layer.end_state {
+    opacity: 0;
+}
+
+
+
+
+
+.ojs_wait_screen_frame {
+	background-color: transparent;
+}
+
+
+.ojs_wait_screen_frame.standy_state {
+	opacity: 0;
+}
+
+.ojs_wait_screen_frame.enter_transition {
+    transition-property: opacity;
+	transition-duration: 120ms;
+	pointer-events: auto;
+}
+
+.ojs_wait_screen_frame.leave_transition {
+	transition-property: opacity;
+	transition-duration: 120ms;
+	transition-timing-function: ease;
+}
+
+.ojs_wait_screen_frame.end_state {
+	opacity: 0;
+	pointer-events: none;
+}
+
 
 .ojs_wait_screen_container {
 	display: flex;
@@ -308,26 +374,7 @@
 	background-color: #3d5885;	
 }
 
-.ojs_wait_screen_standy_state {
-	opacity: 0;
-}
 
-.ojs_wait_screen_enter_transition {
-    transition-property: opacity;
-	transition-duration: 120ms;
-	pointer-events: auto;
-}
-
-.ojs_wait_screen_leave_transition {
-	transition-property: opacity;
-	transition-duration: 120ms;
-	transition-timing-function: ease;
-}
-
-.ojs_wait_screen_end_state {
-	opacity: 0;
-	pointer-events: none;
-}
 
 
 

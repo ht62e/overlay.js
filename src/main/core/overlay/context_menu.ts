@@ -25,12 +25,8 @@ export default class ContextMenu extends Overlay {
 
         this.contentEl = contentEl;
 
-        this.outerFrameTransitionDriver.setCustomTransitionClasses({
-            standyStateClass: "ojs_context_menu_standy_state",
-            enterTransitionClass: "ojs_context_menu_enter_transition",
-            leaveTransitionClass: "ojs_context_menu_leave_transition",
-            endStateClass: "ojs_context_menu_end_state"
-        });
+        this.frameEl.classList.remove("ojs_default_overlay_frame");
+        this.frameEl.classList.add("ojs_context_menu_frame");
 
         this.containerEl.className = "ojs_context_menu_container";
         this.containerEl.appendChild(this.contentEl);

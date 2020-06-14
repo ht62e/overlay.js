@@ -4,7 +4,7 @@ const webpack = require('webpack');
 module.exports = {
     mode: "production",
     //mode: "development",
-    entry: "./src/main/overlayjs.ts",
+    entry: "./src/main/overlay.ts",
     output: {
         filename: "overlay-min.js",
         path: path.join(__dirname, "./build/umd"),

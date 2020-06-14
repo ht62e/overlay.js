@@ -58,7 +58,8 @@ export default class IFrameProxy {
     }
 
     private postMessageHandler(e: MessageEvent) {
-        if (!e.data || !e.data.command || e.data.listenerClass !== "IFrameWindow") throw new Error("パラメータが不正です。");
+        if (e.data.toDownstream) return;
+        if (!e.data || !e.data.command) throw new Error("パラメータが不正です。");
         if (!e.data.sender) throw new Error("FrameIDが未指定です。loadイベントハンドラ実行後に実行する必要があります。");
 
         const data = e.data;
@@ -70,6 +71,12 @@ export default class IFrameProxy {
         const overlayManager: OverlayManager = dCtx.getOverlayManager();
         let promise: Promise<Result> = null;
         let targetIframeWindow: IFrameWindow;
+
+        const sendReturnCommand = (result) => {
+            senderDocumentWindow.postMessage({
+                command: "return", params: result, sender: overlayName, toDownstream: true
+            }, "*"); 
+        }
         
         switch (data.command) {
             case "ok":
@@ -80,32 +87,24 @@ export default class IFrameProxy {
                 break;
             case "open":
                 overlayManager.open(overlayManager.getOverlay(overlayName), params.openConfig, params.loadParams).then(result => {
-                    senderDocumentWindow.postMessage({
-                        command: "return", params: result, sender: overlayName
-                    }, "*");
+                    sendReturnCommand(result);
                 });
                 break;
             case "openAsModal":
                 overlayManager.openAsModal(overlayManager.getOverlay(overlayName), params.openConfig, params.loadParams).then(result => {
-                    senderDocumentWindow.postMessage({
-                        command: "return", params: result, sender: overlayName
-                    }, "*");
+                    sendReturnCommand(result);
                 });
                 break;
             case "openNewIFrameWindow":
                 targetIframeWindow = this.getAvailableIFrameWindow(overlayName, params.loadParams.url);
                 overlayManager.open(targetIframeWindow, params.openConfig, params.loadParams).then(result => {
-                    senderDocumentWindow.postMessage({
-                        command: "return", params: result, sender: overlayName
-                    }, "*");
+                    sendReturnCommand(result);
                 });
                 break;
             case "openNewIFrameWindowAsModal":
                 targetIframeWindow = this.getAvailableIFrameWindow(overlayName, params.loadParams.url);
                 overlayManager.openAsModal(targetIframeWindow, params.openConfig, params.loadParams).then(result => {
-                    senderDocumentWindow.postMessage({
-                        command: "return", params: result, sender: overlayName
-                    }, "*");
+                    sendReturnCommand(result);
                 });
                 break;
             case "showLoadingOverlay":
@@ -116,7 +115,7 @@ export default class IFrameProxy {
                     ).then(result => {
                         if (result.isOk) return;
                         senderDocumentWindow.postMessage({
-                            command: "stop", params: result, sender: params.name
+                            command: "stop", params: result, sender: params.name, toDownstream: true
                         }, "*");
                     });
                 break;
@@ -144,6 +143,7 @@ interface DocumentContext {
 class IFrameContext implements DocumentContext {
     private handlerBindThis;
     private mouseMoveEventHanderBindThis;
+    private mouseDownEventHanderBindThis;
 
     constructor( 
         private iframeEl: HTMLIFrameElement,
@@ -152,6 +152,7 @@ class IFrameContext implements DocumentContext {
         private holderOverlay: Overlay,
         private overlaysLoadEventHandler: () => void) {
             this.mouseMoveEventHanderBindThis = this.mouseMoveEventHander.bind(this);
+            this.mouseDownEventHanderBindThis = this.mouseDownEventHander.bind(this);
             this.handlerBindThis = this.iFrameOnLoadHandler.bind(this);
             const window = this.iframeEl.contentWindow as any;
 
@@ -172,13 +173,15 @@ class IFrameContext implements DocumentContext {
         }
 
         window.addEventListener("mousemove", this.mouseMoveEventHanderBindThis);
+        window.addEventListener("mousedown", this.mouseDownEventHanderBindThis);
 
         window.postMessage({
             command: "dispatchConfig",
             params: {
                 frameId: this.iframeId,
                 loadParams: loadParams
-            }
+            },
+            toDownstream: true
         }, "*");
         
         if (this.overlaysLoadEventHandler) this.overlaysLoadEventHandler();
@@ -193,6 +196,10 @@ class IFrameContext implements DocumentContext {
         const rect: DOMRect = this.iframeEl.getBoundingClientRect();
         Common.currentMouseClientX = e.clientX + rect.left;
         Common.currentMouseClientY = e.clientY + rect.top;
+    }
+
+    private mouseDownEventHander(e: MouseEvent): void {
+        this.overlayManager.handoverMouseDownEvent(e);
     }
 
     public getDocumentWindow(): Window {
@@ -234,7 +241,8 @@ class HostContext implements DocumentContext {
             command: "dispatchConfig",
             params: {
                 frameId: this.frameId
-            }
+            },
+            toDownstream: true
         }, "*");
         
         const embeddedIframes = window.document.getElementsByTagName("iframe");

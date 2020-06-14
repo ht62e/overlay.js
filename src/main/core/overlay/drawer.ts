@@ -116,6 +116,7 @@ export default class Drawer extends Overlay {
             case DockType.Top: dockTypeName = "top"; break;
             case DockType.Bottom: dockTypeName = "bottom"; break;
         }
+        
         this.outerFrameTransitionDriver.setCustomTransitionClasses({
             standyStateClass: "ojs_drawer_" + dockTypeName + "_dock_standy_state",
             enterTransitionClass: "ojs_drawer_enter_transition",

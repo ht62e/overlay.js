@@ -48,10 +48,22 @@ export default class CssTransitionDriver {
 
     public setCustomTransitionClasses(classes: CssTransitionDriverClasses): void {
         if (classes) {
-            if (classes.standyStateClass !== undefined) this.standbyStateClass = classes.standyStateClass;
-            if (classes.enterTransitionClass !== undefined) this.enterTransitionClass = classes.enterTransitionClass;
-            if (classes.leaveTransitionClass !== undefined) this.leaveTransitionClass = classes.leaveTransitionClass;
-            if (classes.endStateClass !== undefined) this.endStateClass = classes.endStateClass;
+            if (classes.standyStateClass !== undefined) {
+                this.target.classList.remove(this.standbyStateClass);
+                this.standbyStateClass = classes.standyStateClass;
+            }
+            if (classes.enterTransitionClass !== undefined) {
+                this.target.classList.remove(this.enterTransitionClass);
+                this.enterTransitionClass = classes.enterTransitionClass;
+            }
+            if (classes.leaveTransitionClass !== undefined) {
+                this.target.classList.remove(this.leaveTransitionClass);
+                this.leaveTransitionClass = classes.leaveTransitionClass;
+            }
+            if (classes.endStateClass !== undefined) {
+                this.target.classList.remove(this.endStateClass);
+                this.endStateClass = classes.endStateClass;
+            }
         }
 
         if (this.target.style.display === "none" || this.target.style.visibility === "hidden") {
@@ -61,13 +73,14 @@ export default class CssTransitionDriver {
 
     public async show(withoutTransition?: boolean): Promise<boolean> {
         if (this.hidePromise) {
-            //クローズアニメーション中に再表示した場合においても、hide呼び出し元は閉じたことを通知する
+            //クローズアニメーション中に再表示した場合においても、hide呼び出し元には閉じたことを通知する
             this.hidePromise = null;
             this.hideResolver(true);
         }
+        console.log("show " + this.target.className);
         
         const transitionIsUsed = this.toggleClasses(true, withoutTransition);
-
+        
         if (transitionIsUsed) {
             if (this.showPromise) {
                 return this.showPromise;
@@ -82,6 +95,8 @@ export default class CssTransitionDriver {
     }
 
     public async hide(withoutTransition?: boolean): Promise<boolean> {
+        console.log("hide " + this.target.className);
+
         if (Common.isMsIE) withoutTransition = true; //IEバグ対策
         if (this.target.style.display === "none" || this.target.style.visibility === "hidden") return;
         

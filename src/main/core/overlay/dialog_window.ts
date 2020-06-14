@@ -79,13 +79,7 @@ export default abstract class DialogWindow extends ResizableOverlay {
 
         this.containerEl.className = "ojs_window_container";
         this.containerEl.appendChild(this.wrapperEl);
-
-        this.outerFrameTransitionDriver.setCustomTransitionClasses({
-            standyStateClass: "ojs_window_standy_state",
-            enterTransitionClass: "ojs_window_enter_transition",
-            leaveTransitionClass: "ojs_window_leave_transition",
-            endStateClass: "ojs_window_end_state"
-        });
+        
     }
 
     public mount(overlayManager: OverlayManager): void {
@@ -130,8 +124,8 @@ export default abstract class DialogWindow extends ResizableOverlay {
     }
 
     //override
-    public activate(): void {
-        super.activate();
+    public activate(isFront: boolean): void {
+        super.activate(isFront);
         this.windowContentEl.style.pointerEvents = "auto";
         this.headerEl.classList.remove("inactive");
     }

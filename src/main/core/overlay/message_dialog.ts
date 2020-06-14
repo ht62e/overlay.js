@@ -118,12 +118,6 @@ export default class MessageDialog extends Overlay {
         _area.appendChild(_cancel);
         this.containerEl.appendChild(_area);
 
-        this.outerFrameTransitionDriver.setCustomTransitionClasses({
-            standyStateClass: "ojs_window_standy_state",
-            enterTransitionClass: "ojs_window_enter_transition",
-            leaveTransitionClass: "ojs_window_leave_transition",
-            endStateClass: "ojs_window_end_state"
-        });
     }
 
     protected onOkButtonClick(e: MouseEvent): void {

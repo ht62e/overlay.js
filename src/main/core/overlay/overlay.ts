@@ -55,6 +55,9 @@ export default abstract class Overlay {
     protected modalInactiveLayer: HTMLDivElement;
     protected modalInactiveLayerTransitionDriver: CssTransitionDriver;
 
+    protected localLoadingOverlayLayer: HTMLDivElement;
+    protected localLoadingOverlayLayerTransitionDriver: CssTransitionDriver;
+
     protected position: Point;
     protected currentSize: CssSize;
     protected options: OverlayOptions;
@@ -67,6 +70,7 @@ export default abstract class Overlay {
     protected mounted: boolean = false;
     protected active: boolean = false;
     protected inactiveModalMode: boolean = false;
+    protected frontOverlay: boolean = false;
 
     protected attachedEventListeners = new Map<HTMLElement, EventAttachInfo>();
 
@@ -85,7 +89,7 @@ export default abstract class Overlay {
 
         this.frameEl = document.createElement("div");
         this.frameEl.style.position = "absolute";
-        this.frameEl.style.backgroundColor = "transparent";
+        this.frameEl.className = "ojs_default_overlay_frame";
 
         //正しいスタイル計算のため初回表示まではdisplay:noneにはしない
         this.frameEl.style.visibility = "hidden";
@@ -130,6 +134,19 @@ export default abstract class Overlay {
         _s.style.height = "100%";
 
         this.modalInactiveLayerTransitionDriver = new CssTransitionDriver(this.modalInactiveLayer);
+
+        //オーバーレイ領域のみの処理待ち表示レイヤー
+        _s = this.localLoadingOverlayLayer = document.createElement("div");
+        _s.className = "ojs_modal_background_layer";
+        _s.style.position = "absolute";
+        _s.style.overflow = "hidden";
+        _s.style.display = "none";
+        _s.style.top = "0px";
+        _s.style.left = "0px";
+        _s.style.width = "100%";
+        _s.style.height = "100%";
+
+        this.localLoadingOverlayLayerTransitionDriver = new CssTransitionDriver(this.localLoadingOverlayLayer);
 
         this.resize(this.originalSize.cssWidth, this.originalSize.cssHeight);
 
@@ -211,7 +228,7 @@ export default abstract class Overlay {
 
     protected onOuterMouseDown(event: MouseEvent) {
         if (this.inactiveModalMode) return;
-        if (this.isActive()) this.overlayManager.cancelAutoClosingOnlyOnce();
+        if (this.isFrontOverlay()) this.overlayManager.cancelAutoClosingOnlyOnce();
         this.overlayManager.overlayMouseDownEventHandler(this.name);
     }
 
@@ -325,18 +342,24 @@ export default abstract class Overlay {
         this.cacheCurrentOffsetSize();
     }
 
-    public activate(): void {
+    public activate(isFront: boolean): void {
         if (!this.active) this.modalInactiveLayerTransitionDriver.hide();
         this.active = true;
         this.inactiveModalMode = false;
+        this.frontOverlay = !!isFront;
     }
 
     public inactivate(withModal: boolean): void {
         this.active = false;
         this.inactiveModalMode = withModal;
+        this.frontOverlay = false;
         if (withModal) {
             this.modalInactiveLayerTransitionDriver.show();
         }
+    }
+
+    public isFrontOverlay(): boolean {
+        return this.frontOverlay;
     }
 
     public isActive(): boolean {

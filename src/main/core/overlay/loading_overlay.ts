@@ -17,6 +17,9 @@ export default class LoadingOverlay extends Overlay {
         };
         super(LoadingOverlay.DEFAULT_NAME, options);
 
+        this.frameEl.style.left = "0px";
+        this.frameEl.style.top = "0px";
+
         let _el: HTMLDivElement;
 
         _el = this.containerEl;
@@ -46,12 +49,8 @@ export default class LoadingOverlay extends Overlay {
         _el.style.width = "0%";
         this.progressFrameEl.appendChild(_el);
 
-        this.outerFrameTransitionDriver.setCustomTransitionClasses({
-            standyStateClass: "ojs_wait_screen_standy_state",
-            enterTransitionClass: "ojs_wait_screen_enter_transition",
-            leaveTransitionClass: "ojs_wait_screen_leave_transition",
-            endStateClass: "ojs_wait_screen_end_state"
-        });
+        this.frameEl.classList.remove("ojs_default_overlay_frame");
+        this.frameEl.classList.add("ojs_wait_screen_frame");
     }
 
     public load(isModal: boolean, params?: any): Promise<Result> {
