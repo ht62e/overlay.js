@@ -1,8 +1,9 @@
-import { IFrameWindow, OverlayManager } from "../../overlay";
 import { Result } from "../common/dto";
 import Overlay from "./overlay";
 import DialogWindow from "./dialog_window";
 import Common from "../common/common";
+import OverlayManager from "./overlay_manager";
+import IFrameWindow from "./iframe_window";
 
 
 export default class IFrameProxy {
@@ -57,7 +58,7 @@ export default class IFrameProxy {
     }
 
     private postMessageHandler(e: MessageEvent) {
-        if (!e.data || !e.data.command || e.data.listenerClass !== "IFrameWindow") return;
+        if (!e.data || !e.data.command || e.data.listenerClass !== "IFrameWindow") throw new Error("パラメータが不正です。");
         if (!e.data.sender) throw new Error("FrameIDが未指定です。loadイベントハンドラ実行後に実行する必要があります。");
 
         const data = e.data;

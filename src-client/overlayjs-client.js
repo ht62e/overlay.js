@@ -236,13 +236,15 @@ OjsClient.showLoadingOverlay = function(message, showProgressBar, progressRatio)
             showProgressBar: showProgressBar,
             progressRatio: progressRatio
         },
-        sender: OjsClient.getFrameId()
+        sender: OjsClient.getFrameId(),
+        listenerClass: "IFrameWindow"
     }, "*");
 }
 
 OjsClient.hideLoadingOverlay = function() {
     window.OjsClient.hostContext.postMessage({
         command: "hideLoadingOverlay",
-        sender: OjsClient.getFrameId()
+        sender: OjsClient.getFrameId(),
+        listenerClass: "IFrameWindow"
     }, "*");
 }
