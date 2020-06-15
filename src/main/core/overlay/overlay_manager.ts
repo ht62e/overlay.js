@@ -260,10 +260,15 @@ export default class OverlayManager {
     }
 
     private async _open(overlay: Overlay, config: OverlayOpenConfig, params?: any): Promise<Result> {
-        if (overlay.isActive() && overlay.getOptions().forceCloseBeforeReopen) {
+        const overlayOptions: OverlayOptions = overlay.getOptions();
+
+        if (overlay.isActive() && overlayOptions.forceCloseBeforeReopen) {
             overlay.forceClose();
         }
-        await this.waitOpen(overlay);
+        
+        if (!overlayOptions.allowToOverrideAlreadyOpened) {
+            await this.waitOpen(overlay);
+        }
         
         if (!config) config = {};
         const overlayName = overlay.getName();
@@ -294,7 +299,9 @@ export default class OverlayManager {
             this.unregister(overlay);
         }
 
-        this.unlockWaitOpen(overlay);
+        if (!overlayOptions.allowToOverrideAlreadyOpened) {
+            this.unlockWaitOpen(overlay);
+        }
 
         return result;
     }

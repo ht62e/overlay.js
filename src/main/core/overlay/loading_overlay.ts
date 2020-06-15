@@ -13,7 +13,8 @@ export default class LoadingOverlay extends Overlay {
     constructor() {
         const options: OverlayOptions = {
             size: new CssSize("100%", "100%"),
-            subOverlay: true
+            subOverlay: true,
+            allowToOverrideAlreadyOpened: true
         };
         super(LoadingOverlay.DEFAULT_NAME, options);
 

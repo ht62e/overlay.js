@@ -10,6 +10,7 @@ export interface OverlayOptions {
     autoCloseOnOutfocus?: boolean;
     subOverlay?: boolean;
     forceCloseBeforeReopen?: boolean;
+    allowToOverrideAlreadyOpened?: boolean;
 }
 
 class EventAttachInfo {
