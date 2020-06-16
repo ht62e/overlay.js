@@ -170,6 +170,18 @@ OjsClient.cancelAndClose = function() {
     }, "*");
 }
 
+OjsClient.close = function(name) {
+    if (!OjsClient.tryAndPendPostMessage(OjsClient.close, arguments)) return;
+    
+    window.OjsClient.hostContext.postMessage({
+        command: "close",
+        sender: OjsClient.getFrameId(),
+        params: {
+            name: name
+        }
+    }, "*");
+}
+
 OjsClient._open = function(name, command, params, openConfig, _promiseResolve, _promiseReject) {
     let promise = null;
     let promiseResolve, promiseReject;

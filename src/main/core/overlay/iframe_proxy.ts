@@ -64,11 +64,12 @@ export default class IFrameProxy {
 
         const data = e.data;
         const params = data.params ? data.params : {};
-        const overlayName = params.name;
         const dCtx: DocumentContext = this.documentContexts.get(data.sender);
         const senderOverlay: Overlay = dCtx.getHolderOverlay();
         const senderDocumentWindow: Window = dCtx.getDocumentWindow();
         const overlayManager: OverlayManager = dCtx.getOverlayManager();
+        const overlayName = params.name;
+        const overlay = overlayManager.getOverlay(overlayName);
         let promise: Promise<Result> = null;
         let targetIframeWindow: IFrameWindow;
 
@@ -86,12 +87,12 @@ export default class IFrameProxy {
                 if (senderOverlay) senderOverlay.close(Result.cancel(params));
                 break;
             case "open":
-                overlayManager.open(overlayManager.getOverlay(overlayName), params.openConfig, params.loadParams).then(result => {
+                overlayManager.open(overlay, params.openConfig, params.loadParams).then(result => {
                     sendReturnCommand(result);
                 });
                 break;
             case "openAsModal":
-                overlayManager.openAsModal(overlayManager.getOverlay(overlayName), params.openConfig, params.loadParams).then(result => {
+                overlayManager.openAsModal(overlay, params.openConfig, params.loadParams).then(result => {
                     sendReturnCommand(result);
                 });
                 break;
@@ -106,6 +107,9 @@ export default class IFrameProxy {
                 overlayManager.openAsModal(targetIframeWindow, params.openConfig, params.loadParams).then(result => {
                     sendReturnCommand(result);
                 });
+                break;
+            case "close":
+                if (overlay) overlay.close(params);
                 break;
             case "showLoadingOverlay":
                 overlayManager.showLoadingOverlay(
@@ -159,7 +163,7 @@ class IFrameContext implements DocumentContext {
             this.iframeEl.addEventListener("load", this.handlerBindThis);
 
             if (window && window.OjsClient && window.OjsClient.firedOnLoadEvent) {
-                //すでにロード済みは手動で起動　※iframe内ページ遷移用にloadイベントは必要
+                //すでにロード済みの場合は手動で実行　※iframe内ページ遷移用にloadイベントは必要
                 this.iFrameOnLoadHandler(null);
             }
     }
