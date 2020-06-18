@@ -112,19 +112,27 @@ export default class IFrameProxy {
                 if (overlay) overlay.close(params);
                 break;
             case "showLoadingOverlay":
-                overlayManager.showLoadingOverlay(
-                    params.message, 
-                    params.showProgressBar, 
-                    params.progressRatio
-                    ).then(result => {
-                        if (result.isOk) return;
-                        senderDocumentWindow.postMessage({
-                            command: "stop", params: result, sender: params.name, toDownstream: true
-                        }, "*");
-                    });
+                if (senderOverlay) {
+                    (senderOverlay as DialogWindow).showLocalWaitScreen(params.message, params.showProgressBar, params.progressRatio);
+                } else {
+                    overlayManager.showLoadingOverlay(
+                        params.message, 
+                        params.showProgressBar, 
+                        params.progressRatio
+                        ).then(result => {
+                            if (result.isOk) return;
+                            senderDocumentWindow.postMessage({
+                                command: "stop", params: result, sender: params.name, toDownstream: true
+                            }, "*");
+                        });
+                }
                 break;
             case "hideLoadingOverlay":
-                overlayManager.hideLoadingOverlay();
+                if (senderOverlay) {
+                    (senderOverlay as DialogWindow).hideLocalWaitScreen();
+                } else {
+                    overlayManager.hideLoadingOverlay();
+                }
                 break;
             case "changeWindowCaption":
                 if (senderOverlay) (senderOverlay as DialogWindow).changeWindowCaption(params.caption);
@@ -173,7 +181,9 @@ class IFrameContext implements DocumentContext {
         let loadParams;
 
         if (this.holderOverlay && this.holderOverlay instanceof IFrameWindow) {
-            loadParams = (this.holderOverlay as IFrameWindow).getLoadParams();
+            const ifw = this.holderOverlay as IFrameWindow;
+            loadParams = ifw.getLoadParams();
+            ifw.hideLocalWaitScreen();
         }
 
         window.addEventListener("mousemove", this.mouseMoveEventHanderBindThis);

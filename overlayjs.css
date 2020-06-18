@@ -155,9 +155,14 @@
 }
 
 
+
+
 .ojs_iframe_dialog_window_content {
     border: none;
 }
+
+
+
 
 .ojs_message_dialog_container {
     background-color: #FFFFFF;
@@ -289,31 +294,6 @@
 
 
 
-.ojs_local_wait_screen_layer {
-    background-color: rgba(255,255,255,0.45);
-}
-
-.ojs_local_wait_screen_layer.standy_state {
-    opacity: 0;
-}
-
-.ojs_local_wait_screen_layer.enter_transition {
-	transition-duration: 120ms;
-	transition-timing-function: ease;
-}
-
-.ojs_local_wait_screen_layer.leave_transition {
-	transition-duration: 120ms;
-	transition-timing-function: ease;
-}
-
-.ojs_local_wait_screen_layer.end_state {
-    opacity: 0;
-}
-
-
-
-
 
 .ojs_wait_screen_frame {
 	background-color: transparent;
@@ -352,6 +332,27 @@
 	-ms-user-select: none;
 	-webkit-user-select: none;
 	-moz-user-select: none;	
+}
+
+.ojs_wait_screen_container.standy_state {
+	opacity: 0;
+}
+
+.ojs_wait_screen_container.enter_transition {
+    transition-property: opacity;
+	transition-duration: 120ms;
+	pointer-events: auto;
+}
+
+.ojs_wait_screen_container.leave_transition {
+	transition-property: opacity;
+	transition-duration: 120ms;
+	transition-timing-function: ease;
+}
+
+.ojs_wait_screen_container.end_state {
+	opacity: 0;
+	pointer-events: none;
 }
 
 .ojs_wait_screen_message {

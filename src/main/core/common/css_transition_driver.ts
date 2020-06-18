@@ -16,6 +16,8 @@ export default class CssTransitionDriver {
     private leaveTransitionClass: string = "leave_transition";
     private endStateClass: string = "end_state";
 
+    private initialCssDisplay: string = "";
+
     private showEventHandlers: (() => void)[] = [];
 
     private showPromise: Promise<boolean>;   
@@ -25,6 +27,10 @@ export default class CssTransitionDriver {
     
     constructor(target: HTMLElement, customClasses?: CssTransitionDriverClasses) {
         this.target = target;
+        this.initialCssDisplay = target.style.display;
+        if (target.style.visibility !== "hidden") {
+            target.style.display = "none";
+        }
         this.setCustomTransitionClasses(customClasses);
 
         target.addEventListener("transitionend", this.onTransitionEnd.bind(this));
@@ -127,7 +133,7 @@ export default class CssTransitionDriver {
         const _t = this.target;
 
         if (visible) {
-            _t.style.display = "";
+            _t.style.display = this.initialCssDisplay;
             _t.style.visibility = ""; //初回表示まではvisibility:hiddenで非表示状態になっている
             _t.style.opacity = "";
 

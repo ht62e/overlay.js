@@ -81,6 +81,14 @@ export default abstract class Overlay {
     public abstract async load(isModal: boolean, params?: any): Promise<Result>;
     public abstract onReceiveMessage(data: any, sender: Overlay): Promise<Result>;
 
+    public static setFullScreenCssStyle(element: HTMLElement) {
+        element.style.position = "absolute";
+        element.style.top = "0px";
+        element.style.left = "0px";
+        element.style.width = "100%";
+        element.style.height = "100%";
+    }
+
     constructor(name: string, options: OverlayOptions) {
         this.name = name;
         this.options = options ? options : {};
@@ -120,32 +128,24 @@ export default abstract class Overlay {
         _s.style.width = "100%";
         _s.style.height = "100%";
         if (this.autoHeight) {
-            this.containerEl.style.height = "auto";
+            _s.style.height = "auto";
         }
 
         //overlayのモーダル表示によって非アクティブ化したときに表示するレイヤー
         _s = this.modalInactiveLayer = document.createElement("div");
         _s.className = "ojs_modal_background_layer";
-        _s.style.position = "absolute";
         _s.style.overflow = "hidden";
         _s.style.display = "none";
-        _s.style.top = "0px";
-        _s.style.left = "0px";
-        _s.style.width = "100%";
-        _s.style.height = "100%";
+        Overlay.setFullScreenCssStyle(_s);
 
         this.modalInactiveLayerTransitionDriver = new CssTransitionDriver(this.modalInactiveLayer);
 
         //オーバーレイ領域のみの処理待ち表示レイヤー
         _s = this.localLoadingOverlayLayer = document.createElement("div");
         _s.className = "ojs_modal_background_layer";
-        _s.style.position = "absolute";
         _s.style.overflow = "hidden";
         _s.style.display = "none";
-        _s.style.top = "0px";
-        _s.style.left = "0px";
-        _s.style.width = "100%";
-        _s.style.height = "100%";
+        Overlay.setFullScreenCssStyle(_s);
 
         this.localLoadingOverlayLayerTransitionDriver = new CssTransitionDriver(this.localLoadingOverlayLayer);
 
