@@ -27,7 +27,9 @@ export default class CssTransitionDriver {
     
     constructor(target: HTMLElement, customClasses?: CssTransitionDriverClasses) {
         this.target = target;
-        this.initialCssDisplay = target.style.display;
+        if (target.style.display !== "none") {
+            this.initialCssDisplay = target.style.display;
+        }
         if (target.style.visibility !== "hidden") {
             target.style.display = "none";
         }
