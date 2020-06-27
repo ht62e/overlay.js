@@ -185,6 +185,13 @@ export default class OverlayManager {
         this.viewPortEl = element;
         element.style.overflow = "hidden";
         element.appendChild(this.modalBackgroundLayer);
+
+        //共通とするborder-radius値をCSSより取得
+        // element.classList.add("ojs_overlay_border_radius");
+        // let style = window.getComputedStyle(element);
+        // let value = style.getPropertyValue("border-radius");
+        // element.classList.remove("ojs_overlay_border_radius");
+        
     }
 
     private register(overlay: Overlay, overlayConfig?: OverlayOpenConfig): void {

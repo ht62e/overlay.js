@@ -23,7 +23,7 @@ export default class MessageDialog extends Overlay {
    
     public static DEFAULT_DIALOG_CSS_WIDTH = "500px";
 
-    public static CONTAINER_CSS_NAME = "ojs_message_dialog_container";
+    public static CONTAINER_CSS_NAME = "ojs_message_dialog_container ojs_overlay_border_radius";
 
     protected headerAreaEl: HTMLDivElement;
     protected iconEl: HTMLDivElement;
@@ -62,8 +62,6 @@ export default class MessageDialog extends Overlay {
         this.containerEl.className = MessageDialog.CONTAINER_CSS_NAME;
         this.containerEl.style.display = "flex";
         this.containerEl.style.flexDirection = "column";
-
-        this.outerFrameTransitionDriver.addShowEventHandler(this.onShowAfter.bind(this));
 
         let _area: HTMLDivElement, _el: HTMLDivElement;
        
@@ -132,7 +130,9 @@ export default class MessageDialog extends Overlay {
         })
     }
 
+    //Override
     protected onShowAfter(): void {
+        super.onShowAfter();
         window.setTimeout(() => {
             if (this.focusTargetElAfterShow) {
                 this.focusTargetElAfterShow.focus();
@@ -170,42 +170,42 @@ export default class MessageDialog extends Overlay {
         switch (mode) {
             case MessageDialog.INFO:
                 colorCssName = "md_info";
-                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#message-dialog-information-icon" style="pointer-events: none;"></use></svg>';
+                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#ojs-message-dialog-information-icon" style="pointer-events: none;"></use></svg>';
                 okButtonLabel = "閉じる";
                 this.cancelButtonEl.style.display = "none";
                 break;
             case MessageDialog.SUCCESS:
                 colorCssName = "md_success";
-                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#message-dialog-check-icon" style="pointer-events: none;"></use></svg>';
+                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#ojs-message-dialog-check-icon" style="pointer-events: none;"></use></svg>';
                 okButtonLabel = "閉じる";
                 this.cancelButtonEl.style.display = "none";
                 break;
             case MessageDialog.ALERT:
                 colorCssName = "md_alert";
-                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#message-dialog-exclamation-icon" style="pointer-events: none;"></use></svg>';
+                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#ojs-message-dialog-exclamation-icon" style="pointer-events: none;"></use></svg>';
                 okButtonLabel = "閉じる";
                 this.cancelButtonEl.style.display = "none";
                 break;
             case MessageDialog.ERROR:
                 colorCssName = "md_critical";
-                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#message-dialog-cross-icon" style="pointer-events: none;"></use></svg>';
+                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#ojs-message-dialog-cross-icon" style="pointer-events: none;"></use></svg>';
                 okButtonLabel = "閉じる";
                 this.cancelButtonEl.style.display = "none";
                 break;
             case MessageDialog.CONFIRM:
                 colorCssName = "md_info";
-                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#message-dialog-exclamation-icon" style="pointer-events: none;"></use></svg>';
+                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#ojs-message-dialog-exclamation-icon" style="pointer-events: none;"></use></svg>';
                 this.cancelButtonEl.style.display = "block";
                 break;
             case MessageDialog.CONFIRM_CAUTION:
                 colorCssName = "md_alert";
-                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#message-dialog-exclamation-icon" style="pointer-events: none;"></use></svg>';
+                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon"><use xlink:href="#ojs-message-dialog-exclamation-icon" style="pointer-events: none;"></use></svg>';
                 this.cancelButtonEl.style.display = "block";
                 this.focusTargetElAfterShow = null;
                 break;
             case MessageDialog.CONFIRM_DELETE:
                 colorCssName = "md_critical";
-                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon md_confirm_delete"><use xlink:href="#message-dialog-exclamation-icon" style="pointer-events: none;"></use></svg>';
+                this.iconEl.innerHTML = '<svg class="ojs_message_dialog_icon md_confirm_delete"><use xlink:href="#ojs-message-dialog-exclamation-icon" style="pointer-events: none;"></use></svg>';
                 this.cancelButtonEl.style.display = "block";
                 this.focusTargetElAfterShow = null;
                 break;

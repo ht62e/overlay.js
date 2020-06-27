@@ -73,6 +73,8 @@ export default abstract class Overlay {
     protected inactiveModalMode: boolean = false;
     protected frontOverlay: boolean = false;
 
+    protected requirePsitionCenteringAfterShow: boolean = false;
+
     protected attachedEventListeners = new Map<HTMLElement, EventAttachInfo>();
 
     protected waitForOverlayClosePromise: Promise<Result>;
@@ -142,7 +144,7 @@ export default abstract class Overlay {
 
         //オーバーレイ領域のみの処理待ち表示レイヤー
         _s = this.localLoadingOverlayLayer = document.createElement("div");
-        _s.className = "ojs_modal_background_layer";
+        _s.className = "ojs_modal_background_layer ojs_overlay_border_radius";
         _s.style.overflow = "hidden";
         _s.style.display = "none";
         Overlay.setFullScreenCssStyle(_s);
@@ -175,7 +177,7 @@ export default abstract class Overlay {
         this.frameEl.appendChild(this.modalInactiveLayer);
 
         this.outerFrameTransitionDriver = new CssTransitionDriver(this.frameEl);
-
+        this.outerFrameTransitionDriver.addShowEventHandler(this.onShowAfter.bind(this));
     }
 
     public mount(overlayManager: OverlayManager): void {
@@ -225,6 +227,14 @@ export default abstract class Overlay {
     }
 
     public __dispachMouseUpEvent(x: number, y: number) {
+    }
+
+    protected onShowAfter(): void {
+        if (this.requirePsitionCenteringAfterShow) {
+            this.cacheCurrentOffsetSize();
+            this.moveToViewPortCenter();
+            this.requirePsitionCenteringAfterShow = false;
+        }
     }
 
     protected onOuterMouseDown(event: MouseEvent) {
@@ -329,6 +339,10 @@ export default abstract class Overlay {
     }
 
     public moveToViewPortCenter(): void {
+        if (this.frameEl.style.display === "none") {
+            this.requirePsitionCenteringAfterShow = true;
+            return;
+        }
         if (!this.offsetSizeCache) this.cacheCurrentOffsetSize();
         let x = Math.round((this.viewPortEl.offsetWidth - this.offsetSizeCache.width) / 2);
         let y = Math.round((this.viewPortEl.offsetHeight - this.offsetSizeCache.height) / 2);

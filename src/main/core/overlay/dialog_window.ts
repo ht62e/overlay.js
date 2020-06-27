@@ -61,7 +61,9 @@ export default abstract class DialogWindow extends ResizableOverlay {
 
         _s = this.headerCloseButtonEl = document.createElement("div");
         _s.className = "close_button";
+        _s.innerHTML = '<svg class="close_button_icon"><use xlink:href="#ojs-window-close-icon" style="pointer-events: none;"></use></svg>';
         this.attachEventListener(_s, "click", this.onHeaderCloseButtonClick);
+        this.attachEventListener(_s, "mousedown", this.onHeaderCloseButtonMouseDown);
 
         _s = this.headerEl;
         _s.appendChild(this.headerCaptionEl);
@@ -83,7 +85,7 @@ export default abstract class DialogWindow extends ResizableOverlay {
         this.wrapperEl.appendChild(this.headerEl);
         this.wrapperEl.appendChild(this.windowContentEl);
 
-        this.containerEl.className = "ojs_window_container";
+        this.containerEl.className = "ojs_window_container ojs_overlay_border_radius";
         this.containerEl.appendChild(this.wrapperEl);
         
     }
@@ -99,9 +101,14 @@ export default abstract class DialogWindow extends ResizableOverlay {
         this.overlayManager.changeContentsSelectable(false);
     }
 
+    protected onHeaderCloseButtonMouseDown(event: MouseEvent) {
+        event.stopPropagation();
+    }
+
     protected onHeaderDragStart(event: MouseEvent) {
         event.preventDefault();
     }
+
 
     //override
     protected onOuterMouseDown(event: MouseEvent) {
@@ -122,7 +129,32 @@ export default abstract class DialogWindow extends ResizableOverlay {
         this.isDragging = false;
         if (this.isActive()) {
             this.windowContentEl.style.pointerEvents = "auto";
+            this.moveToInsideViewport();
         }
+    }
+
+    private moveToInsideViewport() {
+        const frameEl = this.getFrameElement();
+        let toX: number = frameEl.offsetLeft;
+        let toY: number = frameEl.offsetTop;
+
+        const windowRightEdgeX: number = frameEl.offsetLeft + frameEl.offsetWidth;
+        const windowBottomEdgeY: number = frameEl.offsetTop + frameEl.offsetHeight;
+        const viewPortWidth: number = this.overlayManager.getViewPortElement().offsetWidth;
+        const viewPortHeight: number = this.overlayManager.getViewPortElement().offsetHeight;
+        
+        if (windowRightEdgeX > viewPortWidth) {
+            toX = viewPortWidth - frameEl.offsetWidth;
+        }
+
+        if (windowBottomEdgeY > viewPortHeight) {
+            toY = viewPortHeight - frameEl.offsetHeight;
+        }
+
+        if (toX < 0) toX = 0;
+        if (toY < 0) toY = 0;
+
+        this.changePosition(toX, toY);
     }
 
     public changeWindowCaption(title: string) {

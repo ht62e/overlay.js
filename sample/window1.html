@@ -19,7 +19,7 @@
             OjsClient.cancelAndClose();
         });
         document.getElementById("open1_button").addEventListener("click", function(e) {
-            OjsClient.openNewIFrameWindowAsModal("modal1", "./window2.html", {size: {cssWidth: "800px", cssHeight: "200px"}}).then(function(d) {
+            OjsClient.openNewIFrameWindowAsModal("modal1", "./window2.html", null, {size: {cssWidth: "500px", cssHeight: "300px"}, popupInCenterOfViewPort: true}).then(function(d) {
                 document.getElementById("log").innerHTML = JSON.stringify(d);
             }).catch(function(error) {
                 document.getElementById("log").innerHTML = "キャンセル";

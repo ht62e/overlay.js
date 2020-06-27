@@ -97,7 +97,7 @@ export default class IFrameWindow extends DialogWindow {
         }
     }
 
-    //override
+    //Override
     public close(result: Result): void {
         super.close(result);
         this.iframeEl.style.pointerEvents = "none";
