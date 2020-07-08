@@ -56,9 +56,6 @@ export default abstract class Overlay {
     protected modalInactiveLayer: HTMLDivElement;
     protected modalInactiveLayerTransitionDriver: CssTransitionDriver;
 
-    protected localLoadingOverlayLayer: HTMLDivElement;
-    protected localLoadingOverlayLayerTransitionDriver: CssTransitionDriver;
-
     protected position: Point;
     protected currentSize: CssSize;
     protected options: OverlayOptions;
@@ -135,21 +132,12 @@ export default abstract class Overlay {
 
         //overlayのモーダル表示によって非アクティブ化したときに表示するレイヤー
         _s = this.modalInactiveLayer = document.createElement("div");
-        _s.className = "ojs_modal_background_layer";
-        _s.style.overflow = "hidden";
-        _s.style.display = "none";
-        Overlay.setFullScreenCssStyle(_s);
-
-        this.modalInactiveLayerTransitionDriver = new CssTransitionDriver(this.modalInactiveLayer);
-
-        //オーバーレイ領域のみの処理待ち表示レイヤー
-        _s = this.localLoadingOverlayLayer = document.createElement("div");
         _s.className = "ojs_modal_background_layer ojs_overlay_border_radius";
         _s.style.overflow = "hidden";
         _s.style.display = "none";
         Overlay.setFullScreenCssStyle(_s);
 
-        this.localLoadingOverlayLayerTransitionDriver = new CssTransitionDriver(this.localLoadingOverlayLayer);
+        this.modalInactiveLayerTransitionDriver = new CssTransitionDriver(this.modalInactiveLayer);
 
         this.resize(this.originalSize.cssWidth, this.originalSize.cssHeight);
 

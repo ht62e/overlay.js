@@ -44,6 +44,7 @@ export default class IFrameWindow extends DialogWindow {
     public async load(isModal: boolean, params?: any): Promise<Result> {
         this.loadParams = params;
         this.iframeEl.src = this.sourceUrl;
+        this.iframeEl.style.visibility = "hidden";
         this.iframeEl.style.pointerEvents = "inherit";
 
         this.outerFrameTransitionDriver.show();
@@ -70,6 +71,7 @@ export default class IFrameWindow extends DialogWindow {
         } catch (e) {
             this.changeWindowCaption("");
         }
+        this.iframeEl.style.visibility = "";
     }
 
     public onReceiveMessage(data: any, sender: Overlay): Promise<Result> {
