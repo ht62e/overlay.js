@@ -226,12 +226,12 @@ OjsClient.openAsModal = function(name, params, openConfig) {
     return OjsClient._open(name, "openAsModal", params, openConfig);
 }
 
-OjsClient.openNewIFrameWindow = function(name, url, params, openConfig) {
+OjsClient.openLinkInNewWindow = function(name, url, params, openConfig) {
     const loadParams = Object.assign({url: url}, params);
     return OjsClient._open(name, "openNewIFrameWindow", loadParams, openConfig);
 }
 
-OjsClient.openNewIFrameWindowAsModal = function(name, url, params, openConfig) {
+OjsClient.openLinkInNewModalWindow = function(name, url, params, openConfig) {
     const loadParams = Object.assign({url: url}, params);
     return OjsClient._open(name, "openNewIFrameWindowAsModal", loadParams, openConfig);
 }
