@@ -11,17 +11,6 @@
             "runtimeArgs": [
                 "--disable-web-security"
             ]
-        },
-        {
-            "type": "chrome",
-            "request": "launch",
-            "name": "Sample App",
-            "file": "${workspaceRoot}/docs/demo/index.html",
-            "sourceMaps": true,
-            "webRoot": "${workspaceFolder}",
-            "runtimeArgs": [
-                "--disable-web-security"
-            ]
         }
     ]
 }
