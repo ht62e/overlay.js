@@ -17,39 +17,50 @@ import Overlay from "./core/overlay/overlay";
 import IFrameWindow from "./core/overlay/iframe_window";
 import MessageDialog, { MessageDialogMode } from "./core/overlay/message_dialog";
 import LoadingOverlay from "./core/overlay/loading_overlay";
+import OjsClient from "./client_api_loader";
 
 //Webpack UMD形式バンドルにおいてimportしたモジュールが公開されない挙動への対応
 export { 
     OverlayManager, ContextMenu, Drawer, IFrameWindow, MessageDialog,
-    LoadingOverlay as WaitScreen, MessageDialogMode
+    LoadingOverlay as WaitScreen, MessageDialogMode, 
 }
 
 class Main {
     public static main() {
         const global = window as any;
 
-        if (!global.Overlayjs) global.Overlayjs = {
-            isHost: true
-        };
-
-        //開発用エクスポート処理
-        let ojs: any = global.Overlayjs;
-        if (!ojs.OverlayManager) {
-            ojs.OverlayManager = OverlayManager;
-            ojs.Overlay = Overlay;
-            ojs.IFrameWindow = IFrameWindow;
-            ojs.MessageDialog = MessageDialog;
-            ojs.WaitScreen = LoadingOverlay;
-            ojs.ContextMenu = ContextMenu;
-            ojs.Drawer = Drawer;
-        }
-
         if (document["documentMode"]) {
             Common.isMsIE = true;
         }
+
+        if (Main.findHost()) {
+            //上位iframeでoverlay.jsがロード済み、または自身のコンテキストで既にロード済みの場合はロードしない
+            console.log("overlayjs host object is detected in upstream.");
+            return;
+        } else {
+            if (!global.Overlayjs) global.Overlayjs = {};
+            global["___isOverlayjsHost"] = true;
+            console.log("detect overlayjs host.");
+
+            //デバッグ用（require.js経由ロード時向け）エクスポート処理
+            let ojs: any = global.Overlayjs;
+            if (!ojs.OverlayManager) {
+                ojs.OverlayManager = OverlayManager;
+                ojs.Overlay = Overlay;
+                ojs.IFrameWindow = IFrameWindow;
+                ojs.MessageDialog = MessageDialog;
+                ojs.WaitScreen = LoadingOverlay;
+                ojs.ContextMenu = ContextMenu;
+                ojs.Drawer = Drawer;
+                //global.OjsClient = OjsClient;
+            }
+        }
+
     
         if (global.overlayjsInitializer) {
             global.overlayjsInitializer();
+        } else {
+            new OverlayManager(document.body);
         }
 
         Main.embedSvgImage();
@@ -57,6 +68,21 @@ class Main {
         window.addEventListener("mousemove", Main.captureMousePointerPosition);
     }
 
+    private static findHost(): boolean {
+        let self: any = window;
+        let parent: any;
+
+        while (true) {
+            parent = self.parent;
+            if (self["___isOverlayjsHost"]) {
+                return true;
+            } else if (self !== parent) {
+                self = self.parent;
+            } else {
+                return false;
+            }
+        }
+    }
 
     public static embedSvgImage() {
         let s = "";
@@ -88,6 +114,8 @@ class Main {
         Common.currentMouseClientY = e.clientY;
     }
 }
+
+window["ojsclient"] = new OjsClient();
 
 if (document.readyState === "complete") {
     Main.main();

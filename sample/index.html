@@ -12,7 +12,7 @@
     <script data-main="../build/amd/overlay.js" src="./lib/require.js"></script>
     <!-- <script src="../build/umd/overlay-min.js"></script> -->
     <!-- <script src="../build/release/intraframe.js"></script> -->
-    <script src="../src-client/overlayjs-client.js"></script>
+    <!-- <script src="../src-client/overlayjs-client.js"></script> -->
 
     <script>
         window.overlayjsInitializer = function() {
@@ -23,10 +23,7 @@
                 "dialog1",
                 "./window1.html"
             );
-            // const dialog2 = new Overlayjs.core.IFrameWindow(
-            //     "dialog2",
-            //     "./window2.html",
-            // );
+
             const message1 = new Overlayjs.MessageDialog(
               "message1"  
             );
@@ -38,16 +35,14 @@
                 console.log(JSON.stringify(result));
                 om.open(dialog1);
             });
-            // om.open(dialog2).then(function(result) {
+
+            // om.openAsModal(message1, null, {
+            //     mode: Overlayjs.MessageDialog.ERROR,
+            //     title: "テストダイアログタイトル",
+            //     message: "テストメッセージテストメッセージテストメッセージテストメッセージテストメッセージテストメッセージテストメッセージ"
+            // }).then(function(result) {
             //     console.log(JSON.stringify(result));
             // });
-            om.openAsModal(message1, null, {
-                mode: Overlayjs.MessageDialog.ERROR,
-                title: "テストダイアログタイトル",
-                message: "テストメッセージテストメッセージテストメッセージテストメッセージテストメッセージテストメッセージテストメッセージ"
-            }).then(function(result) {
-                console.log(JSON.stringify(result));
-            });
 
             //om.showLoadingOverlay("メッセージ");
 
@@ -69,8 +64,8 @@
             });          
             
             document.getElementById("show_wait_screen").addEventListener("click", function(e) {
-                OjsClient.showLoadingOverlay("global");
-                setTimeout(function(){OjsClient.hideLoadingOverlay()}, 1000);
+                ojsclient.showLoadingOverlay("global");
+                setTimeout(function(){ojsclient.hideLoadingOverlay()}, 1000);
             });   
             
         }

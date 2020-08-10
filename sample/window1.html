@@ -3,8 +3,9 @@
 
 <head>
     <title>タイトル1</title>
-<script src="../src-client/overlayjs-client.js"></script>
-<script src="./lib/promise-7.0.4.min.js"></script>
+<!-- <script src="../src-client/overlayjs-client.js"></script> -->
+    <script data-main="../build/amd/overlay.js" src="./lib/require.js"></script>
+    <script src="./lib/promise-7.0.4.min.js"></script>
 <script>
 
 
@@ -13,13 +14,13 @@
 
     window.addEventListener("load", function(e) {
         document.getElementById("ok_button").addEventListener("click", function(e) {
-            OjsClient.returnAndClose("ABC123");
+            ojsclient.returnAndClose("ABC123");
         });
         document.getElementById("cancel_button").addEventListener("click", function(e) {
-            OjsClient.cancelAndClose();
+            ojsclient.cancelAndClose();
         });
         document.getElementById("open1_button").addEventListener("click", function(e) {
-            OjsClient.openNewIFrameWindowAsModal("modal1", "./window2.html", null, {size: {cssWidth: "500px", cssHeight: "300px"}, popupInCenterOfViewPort: true}).then(function(d) {
+            ojsclient.openLinkInNewModalWindow("modal1", "./window2.html", null, {size: {cssWidth: "500px", cssHeight: "300px"}, popupInCenterOfViewPort: true}).then(function(d) {
                 document.getElementById("log").innerHTML = JSON.stringify(d);
             }).catch(function(error) {
                 document.getElementById("log").innerHTML = "キャンセル";
@@ -27,17 +28,17 @@
         });
 
         document.getElementById("showLoadingOverlay").addEventListener("click", function(e) {
-            OjsClient.showLoadingOverlay("testest");
-            OjsClient.hideLoadingOverlay();
-            OjsClient.showLoadingOverlay("testest");
-            setTimeout(function(){OjsClient.hideLoadingOverlay()}, 1000);
+            ojsclient.showLoadingOverlay("testest");
+            ojsclient.hideLoadingOverlay();
+            ojsclient.showLoadingOverlay("testest");
+            setTimeout(function(){ojsclient.hideLoadingOverlay()}, 1000);
             // window.setTimeout(function() {
             //     Overlayjs.hideLoadingOverlay();
             // }, 1000)
         });
 
         document.getElementById("open_contextmenu").addEventListener("click", function(e) {
-            OjsClient.open("contextmenu");
+            ojsclient.open("contextmenu");
         });  
 
     });

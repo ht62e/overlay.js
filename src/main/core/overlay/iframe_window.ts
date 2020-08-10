@@ -44,7 +44,8 @@ export default class IFrameWindow extends DialogWindow {
     public async load(isModal: boolean, params?: any): Promise<Result> {
         this.loadParams = params;
         this.changeWindowCaption("");
-        this.iframeEl.src = this.sourceUrl;
+        
+        this.iframeEl.contentWindow.location.replace(this.sourceUrl);
         this.iframeEl.style.visibility = "hidden";
         this.iframeEl.style.pointerEvents = "inherit";
 

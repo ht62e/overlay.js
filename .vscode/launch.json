@@ -5,12 +5,14 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome With DevMode",
-            "file": "${workspaceRoot}/sample/index.html",
+            "url": "${workspaceRoot}/sample/index.html",
             "sourceMaps": true,
             "webRoot": "${workspaceFolder}",
             "runtimeArgs": [
-                "--disable-web-security"
-            ]
+                "--disable-web-security",
+                "--remote-debugging-port=9222"
+            ],
+            "trace": true
         }
     ]
 }

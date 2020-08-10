@@ -202,13 +202,9 @@ export default abstract class Overlay {
     }
 
     protected waitForOverlayClose(): Promise<Result> {
-        if (this.waitForOverlayClosePromise) {
-            return this.waitForOverlayClosePromise;
-        } else {
-            return this.waitForOverlayClosePromise = new Promise(resolve => {
-                this.waitForOverlayCloseResolver = resolve;
-            });
-        }
+        return this.waitForOverlayClosePromise = new Promise(resolve => {
+            this.waitForOverlayCloseResolver = resolve;
+        });
     }
 
     public __dispachMouseMoveEvent(x: number, y: number, deltaX: number, deltaY: number) {

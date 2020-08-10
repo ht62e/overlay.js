@@ -127,17 +127,19 @@ export default class OverlayManager {
     }
 
     private onMouseDown(event: MouseEvent) {
-        if (!this.requestedCancelAutoClosingOnlyOnce) {
-            this.statusTable.forEach((status: OverlayStatus, name: string) => {
-                const overlay = this.overlays.get(name);
-                if (status.isVisible && overlay.getOptions().autoCloseOnOutfocus) {
-                    overlay.close({
-                        isOk: false
-                    });
-                }
-            });
+        if (this.requestedCancelAutoClosingOnlyOnce) {
+            this.requestedCancelAutoClosingOnlyOnce = false;
+            return;
         }
-        this.requestedCancelAutoClosingOnlyOnce = false;
+
+        this.statusTable.forEach((status: OverlayStatus, name: string) => {
+            const overlay = this.overlays.get(name);
+            if (status.isVisible && overlay.getOptions().autoCloseOnOutfocus) {
+                overlay.close({
+                    isOk: false
+                });
+            }
+        });
     }
 
     public handoverMouseDownEvent(event: MouseEvent) {
@@ -375,8 +377,6 @@ export default class OverlayManager {
 
         let visibleOverlayCounter = 0;
         let subVisibleOverlayCounter = 0;
-        let previousOverlayConfig: OverlayOpenConfig = null;
-        let previousOverlay: Overlay = null;
 
         overlayList.forEach((overlay: Overlay) => {
             const overlayStatus = this.statusTable.get(overlay.getName());
@@ -404,8 +404,6 @@ export default class OverlayManager {
                     this.activeOverlay = overlay;
                 }
 
-                previousOverlayConfig = overlayConfig;
-                previousOverlay = overlay;
                 ++visibleOverlayCounter;
                 if (overlay.getOptions().subOverlay) ++subVisibleOverlayCounter;
             }

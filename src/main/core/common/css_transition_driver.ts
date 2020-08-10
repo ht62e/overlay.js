@@ -85,7 +85,6 @@ export default class CssTransitionDriver {
             this.hidePromise = null;
             this.hideResolver(true);
         }
-        //console.log("show " + this.target.className);
         
         const transitionIsUsed = this.toggleClasses(true, withoutTransition);
         
@@ -103,8 +102,6 @@ export default class CssTransitionDriver {
     }
 
     public async hide(withoutTransition?: boolean): Promise<boolean> {
-        //console.log("hide " + this.target.className);
-
         if (Common.isMsIE) withoutTransition = true; //IEバグ対策
         if (this.target.style.display === "none" || this.target.style.visibility === "hidden") return;
         

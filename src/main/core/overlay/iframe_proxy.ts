@@ -96,13 +96,13 @@ export default class IFrameProxy {
                     sendReturnCommand(result);
                 });
                 break;
-            case "openNewIFrameWindow":
+            case "openLinkInNewWindow":
                 targetIframeWindow = this.getAvailableIFrameWindow(overlayName, params.loadParams.url);
                 overlayManager.open(targetIframeWindow, params.openConfig, params.loadParams).then(result => {
                     sendReturnCommand(result);
                 });
                 break;
-            case "openNewIFrameWindowAsModal":
+            case "openLinkInNewModalWindow":
                 targetIframeWindow = this.getAvailableIFrameWindow(overlayName, params.loadParams.url);
                 overlayManager.openAsModal(targetIframeWindow, params.openConfig, params.loadParams).then(result => {
                     sendReturnCommand(result);
@@ -153,6 +153,10 @@ interface DocumentContext {
 }
 
 class IFrameContext implements DocumentContext {
+    private static POLLING_INTERVAL: number = 50;
+    private static POLLING_TIMEOUT: number = 5000;
+
+
     private handlerBindThis;
     private mouseMoveEventHanderBindThis;
     private mouseDownEventHanderBindThis;
@@ -163,17 +167,37 @@ class IFrameContext implements DocumentContext {
         private overlayManager: OverlayManager,
         private holderOverlay: Overlay,
         private overlaysLoadEventHandler: () => void) {
+
             this.mouseMoveEventHanderBindThis = this.mouseMoveEventHander.bind(this);
             this.mouseDownEventHanderBindThis = this.mouseDownEventHander.bind(this);
             this.handlerBindThis = this.iFrameOnLoadHandler.bind(this);
             const window = this.iframeEl.contentWindow as any;
 
-            this.iframeEl.addEventListener("load", this.handlerBindThis);
+            if (window && window.document.readyState === "complete") {
+                if (window.ojsclient && window.ojsclient.isLoaded()) {
+                    //すでにロード済みの場合は手動で実行
+                    this.iFrameOnLoadHandler(null);
+                } else {
+                    //スクリプトが遅延ロードされているときはポーリングにて監視
+                    let pollingElapsedTime = 0;
+                    const sprictLoadWatcherId = setInterval(() => {
+                        if (window.ojsclient && window.ojsclient.isLoaded()) {
+                            this.iFrameOnLoadHandler(null);
+                            clearInterval(sprictLoadWatcherId);
+                        }
+                        
+                        //エラー時無限ポーリング防止
+                        pollingElapsedTime += IFrameContext.POLLING_INTERVAL;
+                        if (pollingElapsedTime > IFrameContext.POLLING_TIMEOUT) {
+                            clearInterval(sprictLoadWatcherId);
+                        }
 
-            if (window && window.OjsClient && window.OjsClient.firedOnLoadEvent) {
-                //すでにロード済みの場合は手動で実行　※iframe内ページ遷移用にloadイベントは必要
-                this.iFrameOnLoadHandler(null);
+                    }, IFrameContext.POLLING_INTERVAL);
+                }
             }
+
+            //※iframe内ページ遷移用にloadイベントの捕獲はどのみち必要
+            this.iframeEl.addEventListener("load", this.handlerBindThis);
     }
 
     private iFrameOnLoadHandler(e: Event): void {
@@ -261,6 +285,16 @@ class HostContext implements DocumentContext {
         
         const embeddedIframes = window.document.getElementsByTagName("iframe");
         for (let i = 0; i < embeddedIframes.length; i++) {
+            //埋め込みのiframeでsrcがタグ属性で直に設定されていた場合は例外を生成する
+            //（親コンテキストがロード中の場合はparentが親を示さない（iframe自身を示す）ため、
+            //ホスト検出ができずにそのiframe自身がホストになってしまうため）
+            if (embeddedIframes[i].getAttribute("src")) {
+                embeddedIframes[i].contentWindow.location.replace("about:blank");
+                try {
+                    throw new Error("HTML内におけるiframeのsrc属性直接指定には対応していません。代わりにonloadイベント内で設定することができます。");
+                } catch (e) {}
+            }
+
             IFrameProxy.getInstance().register(embeddedIframes[i], this.overlayManager);
         }
     }
