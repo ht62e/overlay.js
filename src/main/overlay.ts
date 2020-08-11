@@ -37,25 +37,23 @@ class Main {
             //上位iframeでoverlay.jsがロード済み、または自身のコンテキストで既にロード済みの場合はロードしない
             console.log("overlayjs host object is detected in upstream.");
             return;
-        } else {
-            if (!global.Overlayjs) global.Overlayjs = {};
-            global["___isOverlayjsHost"] = true;
-            console.log("detect overlayjs host.");
+        }    
+        
+        if (!global.Overlayjs) global.Overlayjs = {};
+        global[Common.HOST_FLAG_NAME] = true;
 
-            //デバッグ用（require.js経由ロード時向け）エクスポート処理
-            let ojs: any = global.Overlayjs;
-            if (!ojs.OverlayManager) {
-                ojs.OverlayManager = OverlayManager;
-                ojs.Overlay = Overlay;
-                ojs.IFrameWindow = IFrameWindow;
-                ojs.MessageDialog = MessageDialog;
-                ojs.WaitScreen = LoadingOverlay;
-                ojs.ContextMenu = ContextMenu;
-                ojs.Drawer = Drawer;
-                //global.OjsClient = OjsClient;
-            }
+        //デバッグ用（require.js経由ロード時向け）エクスポート処理
+        let ojs: any = global.Overlayjs;
+        if (!ojs.OverlayManager) {
+            ojs.OverlayManager = OverlayManager;
+            ojs.Overlay = Overlay;
+            ojs.IFrameWindow = IFrameWindow;
+            ojs.MessageDialog = MessageDialog;
+            ojs.WaitScreen = LoadingOverlay;
+            ojs.ContextMenu = ContextMenu;
+            ojs.Drawer = Drawer;
+            //global.OjsClient = OjsClient;
         }
-
     
         if (global.overlayjsInitializer) {
             global.overlayjsInitializer();
@@ -74,7 +72,7 @@ class Main {
 
         while (true) {
             parent = self.parent;
-            if (self["___isOverlayjsHost"]) {
+            if (self[Common.HOST_FLAG_NAME]) {
                 return true;
             } else if (self !== parent) {
                 self = self.parent;
@@ -83,6 +81,13 @@ class Main {
             }
         }
     }
+
+    // private static loadCss(url: string): void {
+    //     const el  = document.createElement('link');
+    //     el.rel  = "stylesheet";
+    //     el.href = url;
+    //     document.head.appendChild(el);
+    // }
 
     public static embedSvgImage() {
         let s = "";
@@ -115,7 +120,7 @@ class Main {
     }
 }
 
-window["ojsclient"] = new OjsClient();
+window[Common.CLIENT_INSTANCE_NAME] = new OjsClient();
 
 if (document.readyState === "complete") {
     Main.main();

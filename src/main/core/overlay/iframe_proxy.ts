@@ -45,7 +45,7 @@ export default class IFrameProxy {
         this.documentContexts.delete(iframeId);
     }
 
-    private getAvailableIFrameWindow(overlayName: string, url: string): IFrameWindow {
+    private initializeIFrameWindow(overlayName: string, url: string): IFrameWindow {
         if (this.createdOverlayPool.has(overlayName)) {
             const overlay = this.createdOverlayPool.get(overlayName) as IFrameWindow;
             overlay.changeSourceUrl(url);
@@ -97,13 +97,13 @@ export default class IFrameProxy {
                 });
                 break;
             case "openLinkInNewWindow":
-                targetIframeWindow = this.getAvailableIFrameWindow(overlayName, params.loadParams.url);
+                targetIframeWindow = this.initializeIFrameWindow(overlayName, params.loadParams.url);
                 overlayManager.open(targetIframeWindow, params.openConfig, params.loadParams).then(result => {
                     sendReturnCommand(result);
                 });
                 break;
             case "openLinkInNewModalWindow":
-                targetIframeWindow = this.getAvailableIFrameWindow(overlayName, params.loadParams.url);
+                targetIframeWindow = this.initializeIFrameWindow(overlayName, params.loadParams.url);
                 overlayManager.openAsModal(targetIframeWindow, params.openConfig, params.loadParams).then(result => {
                     sendReturnCommand(result);
                 });
@@ -156,10 +156,11 @@ class IFrameContext implements DocumentContext {
     private static POLLING_INTERVAL: number = 50;
     private static POLLING_TIMEOUT: number = 5000;
 
-
-    private handlerBindThis;
+    private onLoadEventHandlerBindThis;
+    private onPageHideEventHandlerBindThis;
     private mouseMoveEventHanderBindThis;
     private mouseDownEventHanderBindThis;
+    private onloadHandlerIsExecuted = false;
 
     constructor( 
         private iframeEl: HTMLIFrameElement,
@@ -170,38 +171,26 @@ class IFrameContext implements DocumentContext {
 
             this.mouseMoveEventHanderBindThis = this.mouseMoveEventHander.bind(this);
             this.mouseDownEventHanderBindThis = this.mouseDownEventHander.bind(this);
-            this.handlerBindThis = this.iFrameOnLoadHandler.bind(this);
+            this.onLoadEventHandlerBindThis = this.iFrameOnLoadHandler.bind(this);
+            this.onPageHideEventHandlerBindThis = this.pageHideEventHandler.bind(this);
             const window = this.iframeEl.contentWindow as any;
 
-            if (window && window.document.readyState === "complete") {
-                if (window.ojsclient && window.ojsclient.isLoaded()) {
-                    //すでにロード済みの場合は手動で実行
-                    this.iFrameOnLoadHandler(null);
-                } else {
-                    //スクリプトが遅延ロードされているときはポーリングにて監視
-                    let pollingElapsedTime = 0;
-                    const sprictLoadWatcherId = setInterval(() => {
-                        if (window.ojsclient && window.ojsclient.isLoaded()) {
-                            this.iFrameOnLoadHandler(null);
-                            clearInterval(sprictLoadWatcherId);
-                        }
-                        
-                        //エラー時無限ポーリング防止
-                        pollingElapsedTime += IFrameContext.POLLING_INTERVAL;
-                        if (pollingElapsedTime > IFrameContext.POLLING_TIMEOUT) {
-                            clearInterval(sprictLoadWatcherId);
-                        }
+            this.iFrameOnLoadHandler(null);
 
-                    }, IFrameContext.POLLING_INTERVAL);
-                }
-            }
-
-            //※iframe内ページ遷移用にloadイベントの捕獲はどのみち必要
-            this.iframeEl.addEventListener("load", this.handlerBindThis);
+            //ページ遷移完了後に発火する
+            //（ただし、初回ロード時にreadyStateがすでにこの時点でcompleteの場合でも発火する場合があるので
+            //  重複実行への対策が必要 -> onloadHandlerIsExecutedフラグ）
+            this.iframeEl.addEventListener("load", this.onLoadEventHandlerBindThis);
     }
 
-    private iFrameOnLoadHandler(e: Event): void {
+    private async iFrameOnLoadHandler(e: Event) {
+        if (this.onloadHandlerIsExecuted) return;
+        this.onloadHandlerIsExecuted = true;
+
         const window = this.iframeEl.contentWindow;
+
+        await this.waitOjsClientInitializing();
+
         let loadParams;
 
         if (this.holderOverlay && this.holderOverlay instanceof IFrameWindow) {
@@ -209,6 +198,9 @@ class IFrameContext implements DocumentContext {
             loadParams = ifw.getLoadParams();
             ifw.hideLocalWaitScreen();
         }
+
+        //ページ遷移を検出してonloadHandlerIsExecutedフラグをリセットする
+        window.addEventListener("pagehide", this.onPageHideEventHandlerBindThis);
 
         window.addEventListener("mousemove", this.mouseMoveEventHanderBindThis);
         window.addEventListener("mousedown", this.mouseDownEventHanderBindThis);
@@ -228,6 +220,57 @@ class IFrameContext implements DocumentContext {
         for (let i = 0; i < embeddedIframes.length; i++) {
             IFrameProxy.getInstance().register(embeddedIframes[i], this.overlayManager);
         }
+    }
+
+    private async waitOjsClientInitializing() {
+        await this.waitContextLoading();
+
+        return new Promise((resolve, reject) => {
+            const window = this.iframeEl.contentWindow as any;
+
+            if (window[Common.CLIENT_INSTANCE_NAME] && window[Common.CLIENT_INSTANCE_NAME].isLoaded()) {
+                //すでにロード済み
+                resolve();
+            } else {
+                //スクリプトが遅延ロードされているときはポーリングにて監視
+                let pollingElapsedTime = 0;
+                const sprictLoadWatcherId = setInterval(() => {
+                    if (window[Common.CLIENT_INSTANCE_NAME] && window[Common.CLIENT_INSTANCE_NAME].isLoaded()) {
+                        clearInterval(sprictLoadWatcherId);
+                        resolve();
+                    }
+    
+                    //エラー時無限ポーリング防止
+                    pollingElapsedTime += IFrameContext.POLLING_INTERVAL;
+                    if (pollingElapsedTime > IFrameContext.POLLING_TIMEOUT) {
+                        clearInterval(sprictLoadWatcherId);
+                        reject();
+                    }
+    
+                }, IFrameContext.POLLING_INTERVAL);
+            }
+        });
+    }
+
+    private async waitContextLoading() {
+        const window = this.iframeEl.contentWindow as any;
+
+        return new Promise((resolve, reject) => {
+            if (window && window.document.readyState === "complete") {
+                resolve();
+            } else {
+                const loadEventHandler = () => {
+                    this.iframeEl.removeEventListener("load", loadEventHandler);
+                    resolve();
+                }
+                this.iframeEl.addEventListener("load", loadEventHandler);
+            }
+        });
+    }
+
+    private pageHideEventHandler() {
+        this.iframeEl.contentWindow.removeEventListener("pagehide", this.onPageHideEventHandlerBindThis);
+        this.onloadHandlerIsExecuted = false;
     }
 
     private mouseMoveEventHander(e: MouseEvent): void {
@@ -253,8 +296,7 @@ class IFrameContext implements DocumentContext {
     }
 
     public destory() {
-        this.iframeEl.removeEventListener("load", this.handlerBindThis);
-        this.mouseMoveEventHanderBindThis = null;
+        this.iframeEl.removeEventListener("load", this.onLoadEventHandlerBindThis);
     }
 }
 
@@ -284,6 +326,7 @@ class HostContext implements DocumentContext {
         }, "*");
         
         const embeddedIframes = window.document.getElementsByTagName("iframe");
+
         for (let i = 0; i < embeddedIframes.length; i++) {
             //埋め込みのiframeでsrcがタグ属性で直に設定されていた場合は例外を生成する
             //（親コンテキストがロード中の場合はparentが親を示さない（iframe自身を示す）ため、
@@ -294,7 +337,7 @@ class HostContext implements DocumentContext {
                     throw new Error("HTML内におけるiframeのsrc属性直接指定には対応していません。代わりにonloadイベント内で設定することができます。");
                 } catch (e) {}
             }
-
+            
             IFrameProxy.getInstance().register(embeddedIframes[i], this.overlayManager);
         }
     }

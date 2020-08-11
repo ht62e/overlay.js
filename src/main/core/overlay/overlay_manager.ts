@@ -47,7 +47,6 @@ export default class OverlayManager {
     private statusTable: Map<string, OverlayStatus>;
     private configTable: Map<string, OverlayOpenConfig>;
 
-    private activeOverlay: Overlay;
     private defaultWaitScreen: LoadingOverlay;
 
     private previousMouseX: number = 0;
@@ -209,6 +208,7 @@ export default class OverlayManager {
             //クローズアニメーションの最中
             window.clearTimeout(status.unmountTimerHandle);
             status.reset(); 
+            overlay.mount(this);
         } else {
             throw new Error("名前 [" + name + "] は既に登録されています。");
         }
@@ -220,7 +220,7 @@ export default class OverlayManager {
             this.overlays.delete(overlay.getName());
             this.statusTable.delete(overlay.getName());
             this.configTable.delete(overlay.getName());
-            this.activateTopOverlay();
+            //this.activateTopOverlay();
             overlay.unmount();
         }, OverlayManager.INSTANT_MOUNTED_OVERLAY_AUTO_UNMOUNT_DELAY_TIME);
     }
@@ -277,6 +277,14 @@ export default class OverlayManager {
         
         if (!overlayOptions.allowToOverrideAlreadyOpened) {
             await this.waitOpen(overlay);
+    
+            if (overlay.isActive()) {
+                console.error("オーバーレイがアクティブな状態で自オーバーレイを開きなおすことはできません。");
+                if (!overlayOptions.allowToOverrideAlreadyOpened) {
+                    this.unlockWaitOpen(overlay);
+                }
+                return Promise.resolve(Result.cancel());
+            }
         }
         
         if (!config) config = {};
@@ -299,6 +307,7 @@ export default class OverlayManager {
         this.activateSpecificOverlay(overlayName);
         const result = await overlay.load(config.modal, params);
 
+        overlay.inactivate(false);
         status.isVisible = false;
         status.isModal = false;
 
@@ -324,6 +333,11 @@ export default class OverlayManager {
     }
 
     public async openAsModal(overlay: Overlay, config: OverlayOpenConfig, params?: any): Promise<Result> {
+        if (this.existOverlayInModalStack(overlay)) {
+            console.error("モーダル表示中のオーバーレイを開きなおすことはできません。");
+            return Promise.resolve(Result.cancel());
+        }
+        
         this.beginModalMode();
         
         let cfg = config ? config : {};
@@ -400,9 +414,9 @@ export default class OverlayManager {
                     overlay.inactivate(overlayStatus.isModal);
                 }
 
-                if (visibleOverlayCounter === 0) {
-                    this.activeOverlay = overlay;
-                }
+                // if (visibleOverlayCounter === 0) {
+                //     this.activeOverlay = overlay;
+                // }
 
                 ++visibleOverlayCounter;
                 if (overlay.getOptions().subOverlay) ++subVisibleOverlayCounter;
@@ -429,6 +443,18 @@ export default class OverlayManager {
         if (maxZIndex > -1) {
             this.activateSpecificOverlay(targetOverlayName);
         }
+    }
+
+    private existOverlayInModalStack(targetOverlay: Overlay) {
+        let exist: boolean = false;
+
+        this.statusTable.forEach((status: OverlayStatus, name: string) => {
+            const overlay = this.overlays.get(name);
+            if (targetOverlay === overlay && status.isVisible && status.isModal) {
+                exist = true;
+            }
+        });
+        return exist;
     }
 
     public cancelAutoClosingOnlyOnce() {

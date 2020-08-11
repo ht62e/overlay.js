@@ -1,4 +1,5 @@
 import { Result } from "./core/common/dto";
+import Common from "./core/common/common";
 
 export default class OjsClient {
     private firedOnLoadEvent = false;
@@ -25,7 +26,7 @@ export default class OjsClient {
 
     constructor() {
         let parent: any = window.parent;
-        while (!parent["___isOverlayjsHost"] && parent.parent !== parent) {
+        while (!parent[Common.HOST_FLAG_NAME] && parent.parent !== parent) {
             parent = parent.parent;
         }
         this.hostContext = parent;

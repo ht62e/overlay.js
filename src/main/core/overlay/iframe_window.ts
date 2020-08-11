@@ -11,7 +11,7 @@ export interface IFrameWindowOptions extends WindowOptions {
 export default class IFrameWindow extends DialogWindow {
     protected sourceUrl: string;
     protected iframeEl: HTMLIFrameElement;
-    protected frameId: string;
+    protected frameId: string = null;
     protected loadParams: any;
 
     constructor(name: string, url: string, options?: IFrameWindowOptions) {
@@ -31,6 +31,11 @@ export default class IFrameWindow extends DialogWindow {
     //Override
     public mount(overlayManager: OverlayManager): void {
         super.mount(overlayManager);
+
+        if (this.frameEl !== null) {
+            IFrameProxy.getInstance().unregister(this.frameId);
+        }
+
         this.frameId = IFrameProxy.getInstance().register(
             this.iframeEl, this.overlayManager, this, this.onIFrameLoaded.bind(this));
     }
@@ -44,9 +49,9 @@ export default class IFrameWindow extends DialogWindow {
     public async load(isModal: boolean, params?: any): Promise<Result> {
         this.loadParams = params;
         this.changeWindowCaption("");
-        
+
         this.iframeEl.contentWindow.location.replace(this.sourceUrl);
-        this.iframeEl.style.visibility = "hidden";
+        
         this.iframeEl.style.pointerEvents = "inherit";
 
         this.outerFrameTransitionDriver.show();
@@ -56,11 +61,6 @@ export default class IFrameWindow extends DialogWindow {
 
     public changeSourceUrl(url: string): void {
         this.sourceUrl = url;
-        if (this.isMounted()) {
-            this.iframeEl.src = url;
-        } else {
-            this.iframeEl.src = "about:blank";
-        }
     }
 
     public getLoadParams(): any {
@@ -73,7 +73,6 @@ export default class IFrameWindow extends DialogWindow {
         } catch (e) {
             this.changeWindowCaption("");
         }
-        this.iframeEl.style.visibility = "";
     }
 
     public onReceiveMessage(data: any, sender: Overlay): Promise<Result> {
@@ -104,6 +103,7 @@ export default class IFrameWindow extends DialogWindow {
     //Override
     public close(result: Result): void {
         super.close(result);
+        this.iframeEl.contentWindow.location.replace("about:blank");
         this.iframeEl.style.pointerEvents = "none";
     }
 }
