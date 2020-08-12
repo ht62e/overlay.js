@@ -332,13 +332,18 @@ class HostContext implements DocumentContext {
             //（親コンテキストがロード中の場合はparentが親を示さない（iframe自身を示す）ため、
             //ホスト検出ができずにそのiframe自身がホストになってしまうため）
             if (embeddedIframes[i].getAttribute("src")) {
-                embeddedIframes[i].contentWindow.location.replace("about:blank");
-                try {
-                    throw new Error("HTML内におけるiframeのsrc属性直接指定には対応していません。代わりにonloadイベント内で設定することができます。");
-                } catch (e) {}
+                const iframwWindow = embeddedIframes[i].contentWindow;
+                const errorMsg = "HTML内におけるiframeのsrc属性直接指定には対応していません。代わりにonloadイベント内で設定することができます。";
+
+                iframwWindow.document.open();
+                iframwWindow.document.write(errorMsg);
+                iframwWindow.document.close();
+
+                console.error(errorMsg);
+
+            } else {
+                IFrameProxy.getInstance().register(embeddedIframes[i], this.overlayManager);
             }
-            
-            IFrameProxy.getInstance().register(embeddedIframes[i], this.overlayManager);
         }
     }
 
