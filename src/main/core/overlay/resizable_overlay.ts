@@ -16,10 +16,6 @@ export default abstract class ResizableOverlay extends Overlay {
 
     constructor(name: string, options: OverlayOptions) {
         super(name, options);
-    }
-
-    public mount(overlayManager: OverlayManager): void {
-        super.mount(overlayManager);
 
         const maxPctWithoutFrame: string = "calc(100% - " + (ResizableOverlay.resizeHandleThicknessPx * 2) + "px)";
 
@@ -30,14 +26,17 @@ export default abstract class ResizableOverlay extends Overlay {
         _cs.height = maxPctWithoutFrame;
 
         const _ls = this.modalInactiveLayer.style;
-        _ls.left = String(ResizableOverlay.resizeHandleThicknessPx) + "px";
-        _ls.top = String(ResizableOverlay.resizeHandleThicknessPx) + "px";
-        _ls.width = maxPctWithoutFrame;
-        _ls.height = maxPctWithoutFrame;
+        _ls.left = _cs.left;
+        _ls.top = _cs.top;
+        _ls.width = _cs.width;
+        _ls.height = _cs.height;
 
         //outerFrameElの周囲にリサイズイベント検知用のエレメントを生成・配置
         this.createResizeHandleElements();
+    }
 
+    public mount(overlayManager: OverlayManager): void {
+        super.mount(overlayManager);
         this.resize(this.currentSize.cssWidth, this.currentSize.cssHeight);
     }
 
@@ -177,6 +176,18 @@ export default abstract class ResizableOverlay extends Overlay {
         //this.cacheCurrentOffsetSize();
     }
 
+    //Override
+    public activate(isFront: boolean): void {
+        super.activate(isFront);
+        this.refreshResizeHandleElementsActive();
+    }
+
+    //Override
+    public inactivate(withModal: boolean): void {
+        super.inactivate(withModal);
+        this.refreshResizeHandleElementsActive();
+    }
+
     private onResizeHandleMouseDown(event: MouseEvent) {
         this.isResizing = true;
         this.resizePositionIndex = parseInt((event.target as HTMLElement).dataset["positionIndex"]);
@@ -196,11 +207,11 @@ export default abstract class ResizableOverlay extends Overlay {
 
     public setResizable(resizable: boolean) {
         this.resizable = resizable;
-        this.refreshResizeHandleElementActivate();
+        this.refreshResizeHandleElementsActive();
     }
 
-    private refreshResizeHandleElementActivate(): void {
-        const canResize = this.resizable && !this.inactiveModalMode;
+    private refreshResizeHandleElementsActive(): void {
+        const canResize = this.resizable && !this.isInactiveWithModal;
         this.resizeHandleEl.forEach(element => {
             if (canResize) {
                 element.style.display = "";

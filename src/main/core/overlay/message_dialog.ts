@@ -136,8 +136,6 @@ export default class MessageDialog extends Overlay {
         window.setTimeout(() => {
             if (this.focusTargetElAfterShow) {
                 this.focusTargetElAfterShow.focus();
-            } else {
-                this.focusSelf();
             }
         }, MessageDialog.FOCUS_DELAY_TIME_FOR_FOOTER_BUTTONS);
     }

@@ -34,7 +34,6 @@ export default abstract class Overlay {
     protected viewPortEl: HTMLElement;
 
     protected frameEl: HTMLDivElement;
-    protected outerContainerEl: HTMLDivElement;
     protected containerEl: HTMLDivElement;
 
     protected outerFrameTransitionDriver: CssTransitionDriver;
@@ -67,10 +66,10 @@ export default abstract class Overlay {
 
     protected mounted: boolean = false;
     protected active: boolean = false;
-    protected inactiveModalMode: boolean = false;
+    protected isInactiveWithModal: boolean = false;
     protected frontOverlay: boolean = false;
 
-    protected requirePsitionCenteringAfterShow: boolean = false;
+    protected requirePositionCenteringAfterShow: boolean = false;
 
     protected attachedEventListeners = new Map<HTMLElement, EventAttachInfo>();
 
@@ -104,6 +103,7 @@ export default abstract class Overlay {
 
         this.attachEventListener(this.frameEl, "selectstart", this.onSelectStart);
         this.attachEventListener(this.frameEl, "mousedown", this.onOuterMouseDown);  
+        this.attachEventListener(this.frameEl, "focusout", this.onFrameFocusOut);  
 
         //キーボードタブキーナビゲーションによってダイアログの外にフォーカスが移ることを
         //防止（検知）するための非表示エレメントの作成（Shift+Tabキー対策）
@@ -121,7 +121,7 @@ export default abstract class Overlay {
         this.attachEventListener(_s, "focusin", this.onTabFocusMoveHeadDetectorFocusIn);
 
         //コンテンツ領域生成
-        _s = this.containerEl = this.outerContainerEl = document.createElement("div");
+        _s = this.containerEl = document.createElement("div");
         _s.style.position = "relative";
         _s.style.overflow = "hidden";
         _s.style.width = "100%";
@@ -133,8 +133,10 @@ export default abstract class Overlay {
         //overlayのモーダル表示によって非アクティブ化したときに表示するレイヤー
         _s = this.modalInactiveLayer = document.createElement("div");
         _s.className = "ojs_modal_background_layer ojs_overlay_border_radius";
+        _s.tabIndex = 0;
         _s.style.overflow = "hidden";
         _s.style.display = "none";
+        _s.style.outline = "none";
         Overlay.setFullScreenCssStyle(_s);
 
         this.modalInactiveLayerTransitionDriver = new CssTransitionDriver(this.modalInactiveLayer);
@@ -153,9 +155,6 @@ export default abstract class Overlay {
         _s.style.height = "0px";
         _s.tabIndex = 0;
         this.attachEventListener(_s, "focusin", this.onTabFocusMoveTailStopperFocusIn);
-
-        this.attachEventListener(this.containerEl, "focusin", this.onFocusIn);
-        this.attachEventListener(this.containerEl, "focusout", this.onFocusOut);
 
         this.frameEl.appendChild(this.tabFocusMoveHeadStopper);
         this.frameEl.appendChild(this.tabFocusMoveHeadDetector);
@@ -183,6 +182,11 @@ export default abstract class Overlay {
 
     public isMounted(): boolean {
         return this.mounted;
+    }
+
+    public focus() {
+        this.tabFocusMoveHeadDetector.focus();
+        this.lastFocusIsDetector = false;
     }
 
     public close(result: Result): void {
@@ -213,28 +217,30 @@ export default abstract class Overlay {
     public __dispachMouseUpEvent(x: number, y: number) {
     }
 
-    protected onShowAfter(): void {
-        if (this.requirePsitionCenteringAfterShow) {
+    protected onShowAfter(): void {        
+        if (this.requirePositionCenteringAfterShow) {
             this.cacheCurrentOffsetSize();
             this.moveToViewPortCenter();
-            this.requirePsitionCenteringAfterShow = false;
+            this.requirePositionCenteringAfterShow = false;
         }
+
+        this.focus();
     }
 
     protected onOuterMouseDown(event: MouseEvent) {
-        if (this.inactiveModalMode) return;
+        if (this.isInactiveWithModal) return;
         if (this.isFrontOverlay()) this.overlayManager.cancelAutoClosingOnlyOnce();
         this.overlayManager.overlayMouseDownEventHandler(this.name);
     }
 
-    protected focusSelf() {
-        this.tabFocusMoveHeadDetector.focus();
-        this.lastFocusIsDetector = false;
-        this.overlayManager.overlayLastFocusedElement = null;
-    }
-
     private onSelectStart(event: Event) {
 
+    }
+
+    private onFrameFocusOut(event: FocusEvent) {
+        if (this.isInactiveWithModal) {
+            this.overlayManager.returnTabFocusToActiveOverlay();
+        }        
     }
 
     private onTabFocusMoveHeadStopperFocusIn(event: FocusEvent) {
@@ -249,6 +255,8 @@ export default abstract class Overlay {
         if (!this.lastFocusIsDetector) {
             this.lastFocusIsDetector = true;
             this.tabFocusMoveTailDetector.focus();
+        } else {
+            this.lastFocusIsDetector = false;
         }
         event.stopPropagation();
     }
@@ -257,6 +265,8 @@ export default abstract class Overlay {
         if (!this.lastFocusIsDetector) {
             this.lastFocusIsDetector = true;
             this.tabFocusMoveHeadDetector.focus();
+        } else {
+            this.lastFocusIsDetector = false;
         }
         event.stopPropagation();
     }
@@ -267,17 +277,6 @@ export default abstract class Overlay {
         } else {
             this.tabFocusMoveTailDetector.focus();
         }
-    }
-
-    private onFocusIn(event: FocusEvent) {
-        this.lastFocusIsDetector = false;
-        this.overlayManager.overlayLastFocusedElement = null;
-    }
-
-    private onFocusOut(event: FocusEvent) {
-        this.lastFocusIsDetector = false;
-        this.lastFocusedEl = event.target as HTMLElement;
-        this.overlayManager.overlayLastFocusedElement = event.target as HTMLElement;
     }
 
     public onViewPortResize(viewPortWidth: number, viewPortHeight: number) {
@@ -324,7 +323,7 @@ export default abstract class Overlay {
 
     public moveToViewPortCenter(): void {
         if (this.frameEl.style.display === "none") {
-            this.requirePsitionCenteringAfterShow = true;
+            this.requirePositionCenteringAfterShow = true;
             return;
         }
         if (!this.offsetSizeCache) this.cacheCurrentOffsetSize();
@@ -344,13 +343,13 @@ export default abstract class Overlay {
     public activate(isFront: boolean): void {
         if (!this.active) this.modalInactiveLayerTransitionDriver.hide();
         this.active = true;
-        this.inactiveModalMode = false;
+        this.isInactiveWithModal = false;
         this.frontOverlay = !!isFront;
     }
 
     public inactivate(withModal: boolean): void {
         this.active = false;
-        this.inactiveModalMode = withModal;
+        this.isInactiveWithModal = withModal;
         this.frontOverlay = false;
         if (withModal) {
             this.modalInactiveLayerTransitionDriver.show();

@@ -36,7 +36,7 @@ export default class OverlayManager {
 
     private viewPortEl: HTMLElement = null;
 
-    public overlayLastFocusedElement: HTMLElement = null;
+    private activeOverlay: Overlay = null;
 
     private modalBackgroundLayer: HTMLDivElement;
     private modalBackgroundLayerTransitionDriver: CssTransitionDriver;
@@ -77,6 +77,7 @@ export default class OverlayManager {
 
         let _s = this.modalBackgroundLayer = document.createElement("div");
         _s.className = "ojs_modal_background_layer";
+        _s.tabIndex = 0;
         _s.style.position = "absolute";
         _s.style.top = "0px";
         _s.style.left = "0px";
@@ -84,7 +85,10 @@ export default class OverlayManager {
         _s.style.width = "100%";
         _s.style.height = "100%";
         _s.style.display = "none";
+        _s.style.outline = "none";
         _s.style.zIndex = String(OverlayManager.MODAL_START_Z_INDEX);
+
+        _s.addEventListener("focusout", this.onModalBackgroundLayerFocusOut.bind(this));
 
         this.modalBackgroundLayerTransitionDriver = new CssTransitionDriver(this.modalBackgroundLayer);
 
@@ -175,7 +179,11 @@ export default class OverlayManager {
     }
 
     private onFocusIn(event: FocusEvent) {
-        this.overlayLastFocusedElement = null;
+        
+    }
+
+    private onModalBackgroundLayerFocusOut(event: FocusEvent) {
+        if (this.activeOverlay) this.activeOverlay.focus();
     }
 
     public getViewPortElement() {
@@ -409,21 +417,18 @@ export default class OverlayManager {
 
                 if (visibleOverlayCounter - subVisibleOverlayCounter === 0) {
                     overlay.activate(subVisibleOverlayCounter === 0);
+                    this.activeOverlay = overlay;
                     
                 } else {
                     overlay.inactivate(overlayStatus.isModal);
                 }
-
-                // if (visibleOverlayCounter === 0) {
-                //     this.activeOverlay = overlay;
-                // }
 
                 ++visibleOverlayCounter;
                 if (overlay.getOptions().subOverlay) ++subVisibleOverlayCounter;
             }
         });
 
-        
+        if (this.activeOverlay) this.activeOverlay.focus();
     }
 
     public activateTopOverlay() {
@@ -455,6 +460,10 @@ export default class OverlayManager {
             }
         });
         return exist;
+    }
+
+    public returnTabFocusToActiveOverlay() {
+        if (this.activeOverlay) this.activeOverlay.focus();
     }
 
     public cancelAutoClosingOnlyOnce() {
