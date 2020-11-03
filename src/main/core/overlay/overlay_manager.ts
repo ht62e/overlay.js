@@ -65,6 +65,8 @@ export default class OverlayManager {
     private onSelectStartBindedThis: (event: FocusEvent) => void;
     private windowResizeEventHandlerBindThis: (event: Event) => void;
 
+    private pageChangedEventHandler: (url: string, frameId: string, overlayName: string) => void;
+
     constructor(viewPortElement: HTMLElement) {
         if (!viewPortElement) throw new Error("指定されたビューポートは存在しません。");
 
@@ -201,6 +203,14 @@ export default class OverlayManager {
         // let value = style.getPropertyValue("border-radius");
         // element.classList.remove("ojs_overlay_border_radius");
         
+    }
+
+    public setIFramesPageChangedEventHandler(handler: (url: string, frameId: string, overlayName: string) => void) {
+        this.pageChangedEventHandler = handler;
+    }
+
+    public triggerIFramesPageChangedEventHandler(url: string, frameId: string, overlayName: string) {
+        if (this.pageChangedEventHandler) this.pageChangedEventHandler(url, frameId, overlayName);
     }
 
     private register(overlay: Overlay, overlayConfig?: OverlayOpenConfig): void {

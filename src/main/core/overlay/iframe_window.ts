@@ -10,16 +10,17 @@ export interface IFrameWindowOptions extends WindowOptions {
 
 export default class IFrameWindow extends DialogWindow {
     protected sourceUrl: string;
-    protected iframeEl: HTMLIFrameElement;
+    protected iFrameEl: HTMLIFrameElement;
     protected frameId: string = null;
     protected loadParams: any;
+    protected iFrameIsActive: boolean = false;
 
     constructor(name: string, url: string, options?: IFrameWindowOptions) {
         super(name, options);
         this.sourceUrl = url;
 
         let _f: HTMLIFrameElement;
-        _f = this.iframeEl = document.createElement("iframe");
+        _f = this.iFrameEl = document.createElement("iframe");
         _f.className = "ojs_iframe_dialog_window_content";
         _f.style.position = "relative";
         _f.style.width = "100%";
@@ -37,7 +38,7 @@ export default class IFrameWindow extends DialogWindow {
         }
 
         this.frameId = IFrameProxy.getInstance().register(
-            this.iframeEl, this.overlayManager, this, this.onIFrameLoaded.bind(this));
+            this.iFrameEl, this.overlayManager, this, this.onIFrameLoaded.bind(this));
     }
 
     //Override
@@ -50,9 +51,10 @@ export default class IFrameWindow extends DialogWindow {
         this.loadParams = params;
         this.changeWindowCaption("");
 
-        this.iframeEl.contentWindow.location.replace(this.sourceUrl);
+        this.iFrameIsActive = true;
+        this.iFrameEl.contentWindow.location.replace(this.sourceUrl);
         
-        this.iframeEl.style.pointerEvents = "inherit";
+        this.iFrameEl.style.pointerEvents = "inherit";
 
         this.outerFrameTransitionDriver.show();
         
@@ -69,14 +71,18 @@ export default class IFrameWindow extends DialogWindow {
 
     public onIFrameLoaded(): void {
         try {
-            this.changeWindowCaption(this.iframeEl.contentWindow.document.title);
+            this.changeWindowCaption(this.iFrameEl.contentWindow.document.title);
         } catch (e) {
             this.changeWindowCaption("");
         }
     }
 
+    public getIFrameIsActive(): boolean {
+        return this.iFrameIsActive;
+    }
+
     public onReceiveMessage(data: any, sender: Overlay): Promise<Result> {
-        const window = this.iframeEl.contentWindow;
+        const window = this.iFrameEl.contentWindow;
         if (window) {
             window.postMessage({
                 command: "receiveMessage",
@@ -88,11 +94,11 @@ export default class IFrameWindow extends DialogWindow {
     }
 
     protected onHeaderCloseButtonClick(event: MouseEvent): void {
-        const window = this.iframeEl.contentWindow;
+        const window = this.iFrameEl.contentWindow;
         const clientNs = (window as any).OjsClient;
         
         if (window && clientNs && clientNs.getFrameId && clientNs.getFrameId() !== undefined) {
-            this.iframeEl.contentWindow.postMessage({
+            this.iFrameEl.contentWindow.postMessage({
                 command: "headerCloseButtonClicked"
             }, "*");
         } else {
@@ -103,7 +109,8 @@ export default class IFrameWindow extends DialogWindow {
     //Override
     public close(result: Result): void {
         super.close(result);
-        this.iframeEl.contentWindow.location.replace("about:blank");
-        this.iframeEl.style.pointerEvents = "none";
+        this.iFrameIsActive = false;
+        this.iFrameEl.contentWindow.location.replace("about:blank");
+        this.iFrameEl.style.pointerEvents = "none";
     }
 }

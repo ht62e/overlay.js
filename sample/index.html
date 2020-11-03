@@ -28,6 +28,9 @@
               "message1"  
             );
 
+            om.setIFramesPageChangedEventHandler(function(url, frameId, overlayName) {
+                console.log("PageChangedEventHandler: " + url + " " + frameId + " " + overlayName);
+            });
 
             //om.mountPermanently(dialog1);
 

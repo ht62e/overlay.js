@@ -156,7 +156,7 @@ class IFrameContext implements DocumentContext {
     private static POLLING_INTERVAL: number = 50;
     private static POLLING_TIMEOUT: number = 5000;
 
-    private onLoadEventHandlerBindThis;
+    private onIFrameLoadEventHandlerBindThis;
     private onPageHideEventHandlerBindThis;
     private mouseMoveEventHanderBindThis;
     private mouseDownEventHanderBindThis;
@@ -171,7 +171,7 @@ class IFrameContext implements DocumentContext {
 
             this.mouseMoveEventHanderBindThis = this.mouseMoveEventHander.bind(this);
             this.mouseDownEventHanderBindThis = this.mouseDownEventHander.bind(this);
-            this.onLoadEventHandlerBindThis = this.iFrameOnLoadHandler.bind(this);
+            this.onIFrameLoadEventHandlerBindThis = this.iFrameOnLoadHandler.bind(this);
             this.onPageHideEventHandlerBindThis = this.pageHideEventHandler.bind(this);
             const window = this.iframeEl.contentWindow as any;
 
@@ -180,23 +180,31 @@ class IFrameContext implements DocumentContext {
             //ページ遷移完了後に発火する
             //（ただし、初回ロード時にreadyStateがすでにこの時点でcompleteの場合でも発火する場合があるので
             //  重複実行への対策が必要 -> onloadHandlerIsExecutedフラグ）
-            this.iframeEl.addEventListener("load", this.onLoadEventHandlerBindThis);
+            this.iframeEl.addEventListener("load", this.onIFrameLoadEventHandlerBindThis);
     }
 
     private async iFrameOnLoadHandler(e: Event) {
+        let iFrameWindow: IFrameWindow = null;
+        if (this.holderOverlay && this.holderOverlay instanceof IFrameWindow) {
+            iFrameWindow = this.holderOverlay as IFrameWindow;
+            if (!iFrameWindow.getIFrameIsActive()) return;
+        }
+
         if (this.onloadHandlerIsExecuted) return;
         this.onloadHandlerIsExecuted = true;
 
         const window = this.iframeEl.contentWindow;
 
+        this.overlayManager.triggerIFramesPageChangedEventHandler(window.location.href, this.iframeId, 
+            this.holderOverlay ? this.holderOverlay.getName(): "");
+
         await this.waitOjsClientInitializing();
 
         let loadParams;
 
-        if (this.holderOverlay && this.holderOverlay instanceof IFrameWindow) {
-            const ifw = this.holderOverlay as IFrameWindow;
-            loadParams = ifw.getLoadParams();
-            ifw.hideLocalWaitScreen();
+        if (iFrameWindow) {
+            loadParams = iFrameWindow.getLoadParams();
+            iFrameWindow.hideLocalWaitScreen();
         }
 
         //ページ遷移を検出してonloadHandlerIsExecutedフラグをリセットする
@@ -296,7 +304,7 @@ class IFrameContext implements DocumentContext {
     }
 
     public destory() {
-        this.iframeEl.removeEventListener("load", this.onLoadEventHandlerBindThis);
+        this.iframeEl.removeEventListener("load", this.onIFrameLoadEventHandlerBindThis);
     }
 }
 
