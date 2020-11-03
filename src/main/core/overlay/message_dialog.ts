@@ -25,6 +25,9 @@ export default class MessageDialog extends Overlay {
 
     public static CONTAINER_CSS_NAME = "ojs_message_dialog_container ojs_overlay_border_radius";
 
+    public static OK_BUTTON_DOM_ID = "active_message_dialog_ok_button";
+    public static CANCEL_BUTTON_DOM_ID = "active_message_dialog_cancel_button";
+
     protected headerAreaEl: HTMLDivElement;
     protected iconEl: HTMLDivElement;
     protected titleEl: HTMLDivElement;
@@ -236,6 +239,24 @@ export default class MessageDialog extends Overlay {
     public onViewPortResize(viewPortWidth: number, viewPortHeight: number) {
         this.shrinkWidthToMaximum();
         super.onViewPortResize(viewPortWidth, viewPortHeight);
+    }
+
+    //override
+    public activate(isFront: boolean): void {
+        super.activate(isFront);
+
+        //テスティングフレームワーク用にアクティブなダイアログボタンにID属性を付与する
+        this.okButtonEl.setAttribute("id", MessageDialog.OK_BUTTON_DOM_ID);
+        this.cancelButtonEl.setAttribute("id", MessageDialog.CANCEL_BUTTON_DOM_ID);
+    }
+
+    //override
+    public inactivate(withModal: boolean): void {
+        super.inactivate(withModal);
+
+        //テスティングフレームワーク用に付与したダイアログボタンのID属性を削除
+        this.okButtonEl.removeAttribute("id");
+        this.cancelButtonEl.removeAttribute("id");
     }
 
     protected shrinkWidthToMaximum() {
