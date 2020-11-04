@@ -1,6 +1,6 @@
 import DialogWindow, { WindowOptions } from "./dialog_window";
 import OverlayManager from "./overlay_manager";
-import Overlay, { OverlayOptions } from "./overlay";
+import Overlay from "./overlay";
 import { Result } from "../common/dto";
 import IFrameProxy from "./iframe_proxy";
 
@@ -14,6 +14,8 @@ export default class IFrameWindow extends DialogWindow {
     protected frameId: string = null;
     protected loadParams: any;
     protected iFrameIsActive: boolean = false;
+
+    public static IFRAME_DOM_ID = "ojs_active_dialog_window_iframe_element";
 
     constructor(name: string, url: string, options?: IFrameWindowOptions) {
         super(name, options);
@@ -105,6 +107,23 @@ export default class IFrameWindow extends DialogWindow {
             this.forceClose();
         }
     }
+
+    //override
+    public activate(isFront: boolean): void {
+        super.activate(isFront);
+
+        //テスティングフレームワーク用にID属性を付与する
+        this.iFrameEl.setAttribute("id", IFrameWindow.IFRAME_DOM_ID);
+    }
+
+    //override
+    public inactivate(withModal: boolean): void {
+        super.inactivate(withModal);
+
+        //テスティングフレームワーク用に付与したID属性を削除
+        this.iFrameEl.removeAttribute("id");
+    }
+
 
     //Override
     public close(result: Result): void {
