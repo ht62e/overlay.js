@@ -69,7 +69,9 @@
             document.getElementById("show_wait_screen").addEventListener("click", function(e) {
                 ojsclient.showLoadingOverlay("global");
                 setTimeout(function(){ojsclient.hideLoadingOverlay()}, 1000);
-            });   
+            }); 
+
+            document.getElementById("iframe1").src = "./inline1.html";
             
         }
 
@@ -114,6 +116,10 @@
         <input type="button" id="open_sidemenu" value="open sidemenu">
         <input type="button" id="open_contextmenu" value="open contextmenu">
         <input type="button" id="show_wait_screen" value="open waitscreen">
+        <div>
+            <iframe id="iframe1" style="width:100%; height:400px"></iframe>
+        </div>
+        
     </div>
     <div id="sidemenu">side menu</div>
     <div id="contextmenu">
@@ -123,6 +129,7 @@
         <div>context menu4</div>
         <div>context menu5</div>
     </div>
+    
 </body>
 
 </html>
