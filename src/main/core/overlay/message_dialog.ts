@@ -1,6 +1,4 @@
-import OverlayManager from "./overlay_manager";
 import Overlay, { OverlayOptions } from "./overlay";
-import { CssSize } from "../common/types";
 import { Result } from "../common/dto";
 
 const MessageDialogMode: any = {};
@@ -25,8 +23,8 @@ export default class MessageDialog extends Overlay {
 
     public static CONTAINER_CSS_NAME = "ojs_message_dialog_container ojs_overlay_border_radius";
 
-    public static OK_BUTTON_DOM_ID = "active_message_dialog_ok_button";
-    public static CANCEL_BUTTON_DOM_ID = "active_message_dialog_cancel_button";
+    public static OK_BUTTON_DOM_ID = "ojs_active_message_dialog_ok_button";
+    public static CANCEL_BUTTON_DOM_ID = "ojs_active_message_dialog_cancel_button";
 
     protected headerAreaEl: HTMLDivElement;
     protected iconEl: HTMLDivElement;
