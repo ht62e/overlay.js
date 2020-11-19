@@ -72,6 +72,10 @@ export default class OjsClient {
         return this.frameId;
     }
 
+    public getHostContext(): Window {
+        return this.hostContext;
+    }
+
     public setOverlayjsOnLoadEventHandler(handler: (params: any) => void): void {
         this.clientBootstrapFunction = handler;
     }
