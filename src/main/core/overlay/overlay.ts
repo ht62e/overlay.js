@@ -76,7 +76,7 @@ export default abstract class Overlay {
     protected waitForOverlayClosePromise: Promise<Result>;
     protected waitForOverlayCloseResolver: (value?: Result | PromiseLike<Result>) => void;
     
-    public abstract async load(isModal: boolean, params?: any): Promise<Result>;
+    public abstract load(isModal: boolean, params?: any): Promise<Result>;
     public abstract onReceiveMessage(data: any, sender: Overlay): Promise<Result>;
 
     public static setFullScreenCssStyle(element: HTMLElement) {

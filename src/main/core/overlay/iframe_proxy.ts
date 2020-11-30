@@ -234,7 +234,7 @@ class IFrameContext implements DocumentContext {
     private async waitOjsClientInitializing() {
         await this.waitContextLoading();
 
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             const window = this.iframeEl.contentWindow as any;
 
             if (window[Common.CLIENT_INSTANCE_NAME] && window[Common.CLIENT_INSTANCE_NAME].isLoaded()) {
@@ -264,7 +264,7 @@ class IFrameContext implements DocumentContext {
     private async waitContextLoading() {
         const window = this.iframeEl.contentWindow as any;
 
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             if (window && window.document.readyState === "complete") {
                 resolve();
             } else {
