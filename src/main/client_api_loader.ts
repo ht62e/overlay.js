@@ -134,7 +134,8 @@ export default class OjsClient {
             command: "sendMessage",
             destination: destination,
             params: data,
-            sender: this.getFrameId()
+            sender: this.getFrameId(),
+            isOverlayjsMessage: true
         }, "*");
     }
     
@@ -145,7 +146,8 @@ export default class OjsClient {
             command: "broadcastMessage",
             destination: "*",
             params: data,
-            sender: this.getFrameId()
+            sender: this.getFrameId(),
+            isOverlayjsMessage: true
         }, "*");   
     }
     
@@ -155,7 +157,8 @@ export default class OjsClient {
         this.hostContext.postMessage({
             command: "changeWindowCaption",
             params: {caption: caption},
-            sender: this.getFrameId()
+            sender: this.getFrameId(),
+            isOverlayjsMessage: true
         }, "*");
     }
     
@@ -165,7 +168,8 @@ export default class OjsClient {
         this.hostContext.postMessage({
             command: "ok",
             params: data,
-            sender: this.getFrameId()
+            sender: this.getFrameId(),
+            isOverlayjsMessage: true
         }, "*");
     }
     
@@ -174,7 +178,8 @@ export default class OjsClient {
         
         this.hostContext.postMessage({
             command: "cancel",
-            sender: this.getFrameId()
+            sender: this.getFrameId(),
+            isOverlayjsMessage: true
         }, "*");
     }
     
@@ -186,7 +191,8 @@ export default class OjsClient {
             sender: this.getFrameId(),
             params: {
                 name: name
-            }
+            },
+            isOverlayjsMessage: true
         }, "*");
     }
     
@@ -220,7 +226,8 @@ export default class OjsClient {
         this.hostContext.postMessage({
             command: command,
             params: postMsgParams,
-            sender: this.getFrameId()
+            sender: this.getFrameId(),
+            isOverlayjsMessage: true
         }, "*");
     
         return promise;    
@@ -254,14 +261,16 @@ export default class OjsClient {
                 showProgressBar: showProgressBar,
                 progressRatio: progressRatio
             },
-            sender: this.getFrameId()
+            sender: this.getFrameId(),
+            isOverlayjsMessage: true
         }, "*");
     }
     
     public hideLoadingOverlay(): void {
         this.hostContext.postMessage({
             command: "hideLoadingOverlay",
-            sender: this.getFrameId()
+            sender: this.getFrameId(),
+            isOverlayjsMessage: true
         }, "*");
     }
 }

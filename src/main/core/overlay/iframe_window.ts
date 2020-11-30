@@ -89,7 +89,8 @@ export default class IFrameWindow extends DialogWindow {
             window.postMessage({
                 command: "receiveMessage",
                 value: data,
-                sender: sender
+                sender: sender,
+                isOverlayjsMessage: true
             }, "*");
         }  
         return Promise.resolve<Result>(null);
@@ -101,7 +102,8 @@ export default class IFrameWindow extends DialogWindow {
         
         if (window && clientNs && clientNs.getFrameId && clientNs.getFrameId() !== undefined) {
             this.iFrameEl.contentWindow.postMessage({
-                command: "headerCloseButtonClicked"
+                command: "headerCloseButtonClicked",
+                isOverlayjsMessage: true
             }, "*");
         } else {
             this.forceClose();

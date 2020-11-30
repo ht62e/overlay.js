@@ -58,7 +58,7 @@ export default class IFrameProxy {
     }
 
     private postMessageHandler(e: MessageEvent) {
-        if (e.data.toDownstream) return;
+        if (!e.data.isOverlayjsMessage || e.data.toDownstream) return;
         if (!e.data || !e.data.command) throw new Error("パラメータが不正です。");
         if (!e.data.sender) throw new Error("FrameIDが未指定です。loadイベントハンドラ実行後に実行する必要があります。");
 
@@ -75,7 +75,7 @@ export default class IFrameProxy {
 
         const sendReturnCommand = (result) => {
             senderDocumentWindow.postMessage({
-                command: "return", params: result, sender: overlayName, toDownstream: true
+                command: "return", params: result, sender: overlayName, toDownstream: true, isOverlayjsMessage: true
             }, "*"); 
         }
         
@@ -122,7 +122,7 @@ export default class IFrameProxy {
                         ).then(result => {
                             if (result.isOk) return;
                             senderDocumentWindow.postMessage({
-                                command: "stop", params: result, sender: params.name, toDownstream: true
+                                command: "stop", params: result, sender: params.name, toDownstream: true, isOverlayjsMessage: true
                             }, "*");
                         });
                 }
@@ -219,7 +219,8 @@ class IFrameContext implements DocumentContext {
                 frameId: this.iframeId,
                 loadParams: loadParams
             },
-            toDownstream: true
+            toDownstream: true,
+            isOverlayjsMessage: true
         }, "*");
         
         if (this.overlaysLoadEventHandler) this.overlaysLoadEventHandler();
@@ -330,7 +331,8 @@ class HostContext implements DocumentContext {
             params: {
                 frameId: this.frameId
             },
-            toDownstream: true
+            toDownstream: true,
+            isOverlayjsMessage: true
         }, "*");
         
         const embeddedIframes = window.document.getElementsByTagName("iframe");
