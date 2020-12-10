@@ -33,7 +33,7 @@ class Main {
             Common.isMsIE = true;
         }
 
-        if (Main.findHost()) {
+        if (Main.existsHost()) {
             //上位iframeでoverlay.jsがロード済み、または自身のコンテキストで既にロード済みの場合はロードしない
             console.log("overlayjs host object is detected in upstream.");
             return;
@@ -66,19 +66,25 @@ class Main {
         window.addEventListener("mousemove", Main.captureMousePointerPosition);
     }
 
-    private static findHost(): boolean {
+    private static existsHost(): boolean {
         let self: any = window;
         let parent: any;
 
         while (true) {
             parent = self.parent;
-            if (self[Common.HOST_FLAG_NAME]) {
-                return true;
-            } else if (self !== parent) {
-                self = self.parent;
-            } else {
+            try {
+                if (self[Common.HOST_FLAG_NAME]) {
+                    return true;
+                } else if (self !== parent) {
+                    self = self.parent;
+                } else {
+                    return false;
+                }
+            } catch (e) {
+                //親コンテキストのドメインが異なる場合
                 return false;
             }
+
         }
     }
 

@@ -26,9 +26,15 @@ export default class OjsClient {
 
     constructor() {
         let parent: any = window.parent;
-        while (!parent[Common.HOST_FLAG_NAME] && parent.parent !== parent) {
-            parent = parent.parent;
+        try {
+            while (!parent[Common.HOST_FLAG_NAME] && parent.parent !== parent) {
+                parent = parent.parent;
+            }
+        } catch (e) {
+            //親のドメインが異なる場合はこのコンテキストがホストに設定される
+            parent = window;
         }
+        
         this.hostContext = parent;
 
         window.addEventListener("load", () => {
