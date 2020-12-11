@@ -193,9 +193,9 @@ class IFrameContext implements DocumentContext {
         if (this.onloadHandlerIsExecuted) return;
         this.onloadHandlerIsExecuted = true;
 
-        const window = this.iframeEl.contentWindow;
+        const iframeWindow = this.iframeEl.contentWindow;
 
-        this.overlayManager.triggerIFramesPageChangedEventHandler(window.location.href, this.iframeId, 
+        this.overlayManager.triggerIFramesPageChangedEventHandler(iframeWindow.location.href, this.iframeId, 
             this.holderOverlay ? this.holderOverlay.getName(): "");
 
         await this.waitOjsClientInitializing();
@@ -208,12 +208,12 @@ class IFrameContext implements DocumentContext {
         }
 
         //ページ遷移を検出してonloadHandlerIsExecutedフラグをリセットする
-        window.addEventListener("pagehide", this.onPageHideEventHandlerBindThis);
+        iframeWindow.addEventListener("pagehide", this.onPageHideEventHandlerBindThis);
 
-        window.addEventListener("mousemove", this.mouseMoveEventHanderBindThis);
-        window.addEventListener("mousedown", this.mouseDownEventHanderBindThis);
+        iframeWindow.addEventListener("mousemove", this.mouseMoveEventHanderBindThis);
+        iframeWindow.addEventListener("mousedown", this.mouseDownEventHanderBindThis);
 
-        window.postMessage({
+        iframeWindow.postMessage({
             command: "dispatchConfig",
             params: {
                 frameId: this.iframeId,
@@ -225,7 +225,7 @@ class IFrameContext implements DocumentContext {
         
         if (this.overlaysLoadEventHandler) this.overlaysLoadEventHandler();
 
-        const embeddedIframes = window.document.getElementsByTagName("iframe");
+        const embeddedIframes = iframeWindow.document.getElementsByTagName("iframe");
         for (let i = 0; i < embeddedIframes.length; i++) {
             IFrameProxy.getInstance().register(embeddedIframes[i], this.overlayManager);
         }
