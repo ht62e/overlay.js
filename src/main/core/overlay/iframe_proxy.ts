@@ -198,7 +198,12 @@ class IFrameContext implements DocumentContext {
         this.overlayManager.triggerIFramesPageChangedEventHandler(iframeWindow.location.href, this.iframeId, 
             this.holderOverlay ? this.holderOverlay.getName(): "");
 
-        await this.waitOjsClientInitializing();
+        try {
+            await this.waitOjsClientInitializing();
+        } catch(e) {
+            this.onloadHandlerIsExecuted = false;
+            throw e;
+        }
 
         let loadParams;
 
