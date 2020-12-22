@@ -32,5 +32,7 @@ module.exports = {
     },
     resolve: {
         extensions: [".ts", ".tsx", ".js"]
-    }
+    },
+    // for IE11
+    target: ["web", "es5"], 
 };
