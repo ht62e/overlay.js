@@ -63,7 +63,9 @@
             });
 
             document.getElementById("open_contextmenu").addEventListener("click", function(e) {
-                om.open(contextMenu);
+                om.open(contextMenu).then(function(d) {
+                    console.log(d);
+                });
             });          
             
             document.getElementById("show_wait_screen").addEventListener("click", function(e) {
@@ -72,6 +74,10 @@
             }); 
 
             document.getElementById("iframe1").src = "./inline1.html";
+
+            document.getElementById("contextmenu").addEventListener("click", function(e) {
+                ojsclient.returnAndCloseOverlay("contextmenu", "Clicked item is " + e.target.dataset["index"]);
+            }).catch(function(){});
             
         }
 
@@ -123,11 +129,11 @@
     </div>
     <div id="sidemenu">side menu</div>
     <div id="contextmenu">
-        <div>context menu1</div>
-        <div>context menu2</div>
-        <div>context menu3</div>
-        <div>context menu4</div>
-        <div>context menu5</div>
+        <div data-index="1">context menu1</div>
+        <div data-index="2">context menu2</div>
+        <div data-index="3">context menu3</div>
+        <div data-index="4">context menu4</div>
+        <div data-index="5">context menu5</div>
     </div>
     
 </body>

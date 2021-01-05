@@ -189,15 +189,14 @@ export default class OjsClient {
         }, "*");
     }
     
-    public close(name): void {
-        if (!this.tryAndPendPostMessage(this.close, arguments)) return;
+    public returnAndCloseOverlay(name, data: any): void {
+        if (!this.tryAndPendPostMessage(this.returnAndCloseOverlay, arguments)) return;
         
         this.hostContext.postMessage({
-            command: "close",
+            command: "returnAndCloseOverlay",
+            targetOverlay: name,
             sender: this.getFrameId(),
-            params: {
-                name: name
-            },
+            params: data,
             isOverlayjsMessage: true
         }, "*");
     }
@@ -222,7 +221,6 @@ export default class OjsClient {
         }
     
         var postMsgParams = {
-            name: name,
             loadParams: params,
             openConfig: openConfig
         }
@@ -231,6 +229,7 @@ export default class OjsClient {
     
         this.hostContext.postMessage({
             command: command,
+            targetOverlay: name,
             params: postMsgParams,
             sender: this.getFrameId(),
             isOverlayjsMessage: true

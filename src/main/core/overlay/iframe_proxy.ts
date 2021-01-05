@@ -68,7 +68,7 @@ export default class IFrameProxy {
         const senderOverlay: Overlay = dCtx.getHolderOverlay();
         const senderDocumentWindow: Window = dCtx.getDocumentWindow();
         const overlayManager: OverlayManager = dCtx.getOverlayManager();
-        const overlayName = params.name;
+        const overlayName = data.targetOverlay;
         const overlay = overlayManager.getOverlay(overlayName);
         let promise: Promise<Result> = null;
         let targetIframeWindow: IFrameWindow;
@@ -108,8 +108,8 @@ export default class IFrameProxy {
                     sendReturnCommand(result);
                 });
                 break;
-            case "close":
-                if (overlay) overlay.close(params);
+            case "returnAndCloseOverlay":
+                if (overlay) overlay.close(Result.ok(params));
                 break;
             case "showLoadingOverlay":
                 if (senderOverlay) {
