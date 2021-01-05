@@ -184,18 +184,21 @@ class IFrameContext implements DocumentContext {
     }
 
     private async iFrameOnLoadHandler(e: Event) {
-        let iFrameWindow: IFrameWindow = null;
-        if (this.holderOverlay && this.holderOverlay instanceof IFrameWindow) {
-            iFrameWindow = this.holderOverlay as IFrameWindow;
-            if (!iFrameWindow.getIFrameIsActive()) return;
+        //アンロード(close)時エラー対策
+        let iFrameOverlay: IFrameWindow;
+        if (this.holderOverlay instanceof IFrameWindow) {
+            iFrameOverlay = this.holderOverlay as IFrameWindow;
+            if (!iFrameOverlay.getIFrameIsActive()) return;
         }
+
+        const iframeDocWindow = this.iframeEl.contentWindow;
+
+        if (iframeDocWindow.location.href === "about:blank") return;
 
         if (this.onloadHandlerIsExecuted) return;
         this.onloadHandlerIsExecuted = true;
 
-        const iframeWindow = this.iframeEl.contentWindow;
-
-        this.overlayManager.triggerIFramesPageChangedEventHandler(iframeWindow.location.href, this.iframeId, 
+        this.overlayManager.triggerIFramesPageChangedEventHandler(iframeDocWindow.location.href, this.iframeId, 
             this.holderOverlay ? this.holderOverlay.getName(): "");
 
         try {
@@ -207,18 +210,18 @@ class IFrameContext implements DocumentContext {
 
         let loadParams;
 
-        if (iFrameWindow) {
-            loadParams = iFrameWindow.getLoadParams();
-            iFrameWindow.hideLocalWaitScreen();
+        if (iFrameOverlay) {
+            loadParams = iFrameOverlay.getLoadParams();
+            iFrameOverlay.hideLocalWaitScreen();
         }
 
         //ページ遷移を検出してonloadHandlerIsExecutedフラグをリセットする
-        iframeWindow.addEventListener("pagehide", this.onPageHideEventHandlerBindThis);
+        iframeDocWindow.addEventListener("pagehide", this.onPageHideEventHandlerBindThis);
 
-        iframeWindow.addEventListener("mousemove", this.mouseMoveEventHanderBindThis);
-        iframeWindow.addEventListener("mousedown", this.mouseDownEventHanderBindThis);
+        iframeDocWindow.addEventListener("mousemove", this.mouseMoveEventHanderBindThis);
+        iframeDocWindow.addEventListener("mousedown", this.mouseDownEventHanderBindThis);
 
-        iframeWindow.postMessage({
+        iframeDocWindow.postMessage({
             command: "dispatchConfig",
             params: {
                 frameId: this.iframeId,
@@ -230,7 +233,7 @@ class IFrameContext implements DocumentContext {
         
         if (this.overlaysLoadEventHandler) this.overlaysLoadEventHandler();
 
-        const embeddedIframes = iframeWindow.document.getElementsByTagName("iframe");
+        const embeddedIframes = iframeDocWindow.document.getElementsByTagName("iframe");
         for (let i = 0; i < embeddedIframes.length; i++) {
             IFrameProxy.getInstance().register(embeddedIframes[i], this.overlayManager);
         }
@@ -242,14 +245,14 @@ class IFrameContext implements DocumentContext {
         return new Promise<void>((resolve, reject) => {
             const window = this.iframeEl.contentWindow as any;
 
-            if (window[Common.CLIENT_INSTANCE_NAME] && window[Common.CLIENT_INSTANCE_NAME].isLoaded()) {
+            if (window && window[Common.CLIENT_INSTANCE_NAME] && window[Common.CLIENT_INSTANCE_NAME].isLoaded()) {
                 //すでにロード済み
                 resolve();
             } else {
                 //スクリプトが遅延ロードされているときはポーリングにて監視
                 let pollingElapsedTime = 0;
                 const sprictLoadWatcherId = setInterval(() => {
-                    if (window[Common.CLIENT_INSTANCE_NAME] && window[Common.CLIENT_INSTANCE_NAME].isLoaded()) {
+                    if (window && window[Common.CLIENT_INSTANCE_NAME] && window[Common.CLIENT_INSTANCE_NAME].isLoaded()) {
                         clearInterval(sprictLoadWatcherId);
                         resolve();
                     }
