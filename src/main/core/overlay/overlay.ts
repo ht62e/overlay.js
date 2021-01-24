@@ -128,7 +128,7 @@ export default abstract class Overlay {
         _s.style.width = "100%";
         _s.style.height = "100%";
         if (this.autoHeight) _s.style.height = "auto";
-        if (options.containerCssClass) _s.className = options.containerCssClass;
+        if (this.options.containerCssClass) _s.className = options.containerCssClass;
 
         //overlayのモーダル表示によって非アクティブ化したときに表示するレイヤー
         _s = this.modalInactiveLayer = document.createElement("div");
