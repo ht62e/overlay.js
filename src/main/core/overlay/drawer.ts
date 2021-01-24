@@ -38,7 +38,7 @@ export default class Drawer extends Overlay {
 
         this.changeDockType(this.dockType);
 
-        this.containerEl.className = "ojs_drawer_container";
+        this.containerEl.classList.add("ojs_drawer_container");
         this.containerEl.appendChild(this.contentEl);   
     }
 

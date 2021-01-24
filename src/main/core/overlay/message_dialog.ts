@@ -60,7 +60,7 @@ export default class MessageDialog extends Overlay {
         MessageDialogMode["CONFIRM_CAUTION"] = MessageDialog.CONFIRM_CAUTION;
         MessageDialogMode["CONFIRM_DELETE"] = MessageDialog.CONFIRM_DELETE;
 
-        this.containerEl.className = MessageDialog.CONTAINER_CSS_NAME;
+        this.containerEl.classList.add(MessageDialog.CONTAINER_CSS_NAME);
         this.containerEl.style.display = "flex";
         this.containerEl.style.flexDirection = "column";
 
@@ -219,7 +219,7 @@ export default class MessageDialog extends Overlay {
         this.okButtonEl.value = okButtonLabel;
         this.cancelButtonEl.value = cancelButtonLabel;
 
-        this.containerEl.className = MessageDialog.CONTAINER_CSS_NAME + " " + colorCssName;
+        this.containerEl.classList.add(MessageDialog.CONTAINER_CSS_NAME, colorCssName);
 
         this.shrinkWidthToMaximum();
         this.moveToViewPortCenter();

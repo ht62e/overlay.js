@@ -85,7 +85,7 @@ export default abstract class DialogWindow extends ResizableOverlay {
         this.wrapperEl.appendChild(this.headerEl);
         this.wrapperEl.appendChild(this.windowContentEl);
 
-        this.containerEl.className = "ojs_window_container ojs_overlay_border_radius";
+        this.containerEl.classList.add("ojs_window_container", "ojs_overlay_border_radius");
         this.containerEl.appendChild(this.wrapperEl);
         
     }
