@@ -21,8 +21,6 @@ export default class MessageDialog extends Overlay {
    
     public static DEFAULT_DIALOG_CSS_WIDTH = "500px";
 
-    public static CONTAINER_CSS_NAME = "ojs_message_dialog_container ojs_overlay_border_radius";
-
     public static OK_BUTTON_DOM_ID = "ojs_active_message_dialog_ok_button";
     public static CANCEL_BUTTON_DOM_ID = "ojs_active_message_dialog_cancel_button";
 
@@ -60,7 +58,7 @@ export default class MessageDialog extends Overlay {
         MessageDialogMode["CONFIRM_CAUTION"] = MessageDialog.CONFIRM_CAUTION;
         MessageDialogMode["CONFIRM_DELETE"] = MessageDialog.CONFIRM_DELETE;
 
-        this.containerEl.className = MessageDialog.CONTAINER_CSS_NAME;
+        this.containerEl.classList.add("ojs_message_dialog_container", "ojs_overlay_border_radius");
         this.containerEl.style.display = "flex";
         this.containerEl.style.flexDirection = "column";
 
@@ -219,7 +217,7 @@ export default class MessageDialog extends Overlay {
         this.okButtonEl.value = okButtonLabel;
         this.cancelButtonEl.value = cancelButtonLabel;
 
-        this.containerEl.className = MessageDialog.CONTAINER_CSS_NAME + " " + colorCssName;
+        this.containerEl.classList.add("ojs_message_dialog_container", "ojs_overlay_border_radius", colorCssName);
 
         this.shrinkWidthToMaximum();
         this.moveToViewPortCenter();

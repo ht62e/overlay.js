@@ -28,7 +28,7 @@ export default class ContextMenu extends Overlay {
         this.frameEl.classList.remove("ojs_default_overlay_frame");
         this.frameEl.classList.add("ojs_context_menu_frame");
 
-        this.containerEl.className = "ojs_context_menu_container";
+        this.containerEl.classList.add("ojs_context_menu_container");
         this.containerEl.appendChild(this.contentEl);
     }
     
