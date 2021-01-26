@@ -126,7 +126,9 @@ class Main {
     }
 }
 
-window[Common.CLIENT_INSTANCE_NAME] = new OjsClient();
+if (!window[Common.CLIENT_INSTANCE_NAME]) {
+    window[Common.CLIENT_INSTANCE_NAME] = new OjsClient();
+}
 
 if (document.readyState === "complete") {
     Main.main();
