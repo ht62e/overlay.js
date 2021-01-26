@@ -34,6 +34,8 @@ export default class MessageDialog extends Overlay {
     protected okButtonEl: HTMLInputElement;
     protected cancelButtonEl: HTMLInputElement;
 
+    protected containerInitialCssClasses: string;
+
     private focusTargetElAfterShow: HTMLElement;    
 
     constructor(name: string, options?: MessageDialogOptions) {
@@ -59,6 +61,7 @@ export default class MessageDialog extends Overlay {
         MessageDialogMode["CONFIRM_DELETE"] = MessageDialog.CONFIRM_DELETE;
 
         this.containerEl.classList.add("ojs_message_dialog_container", "ojs_overlay_border_radius");
+        this.containerInitialCssClasses = this.containerEl.className;
         this.containerEl.style.display = "flex";
         this.containerEl.style.flexDirection = "column";
 
@@ -217,7 +220,8 @@ export default class MessageDialog extends Overlay {
         this.okButtonEl.value = okButtonLabel;
         this.cancelButtonEl.value = cancelButtonLabel;
 
-        this.containerEl.classList.add("ojs_message_dialog_container", "ojs_overlay_border_radius", colorCssName);
+        this.containerEl.className = this.containerInitialCssClasses;
+        this.containerEl.classList.add(colorCssName);
 
         this.shrinkWidthToMaximum();
         this.moveToViewPortCenter();
