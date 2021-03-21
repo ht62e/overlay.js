@@ -101,6 +101,7 @@ export default abstract class Overlay {
 
         //正しいスタイル計算のため初回表示まではdisplay:noneにはしない
         this.frameEl.style.visibility = "hidden";
+        this.frameEl.style.pointerEvents = "none";
 
         this.attachEventListener(this.frameEl, "selectstart", this.onSelectStart);
         this.attachEventListener(this.frameEl, "mousedown", this.onOuterMouseDown);  
