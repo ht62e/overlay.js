@@ -10,6 +10,8 @@ export default class IFrameProxy {
     private static singleton = new IFrameProxy();
     private static iframeIdSequence: number = 0;
 
+    public static EMBEDDED_IFRAME_ID_DATA_FIELD_NAME: string = "_ojsFrameId";
+
     private hostIsRegisterd: boolean = false;
 
     private documentContexts = new Map<string, DocumentContext>();
@@ -43,6 +45,21 @@ export default class IFrameProxy {
         const ctx = this.documentContexts.get(iframeId);
         if (ctx) ctx.destory();
         this.documentContexts.delete(iframeId);
+    }
+
+    public setLoadParams(frameId: string, loadParams: any) {
+        const ctx: DocumentContext = this.documentContexts.get(String(frameId));
+        if (ctx instanceof IFrameContext) {
+            ctx.setLoadParams(loadParams);
+        }
+    }
+
+    private loadEmbeddedIFrame(frameId: string, url: string, loadParams: any) {
+        const ctx: DocumentContext = this.documentContexts.get(String(frameId));
+        if (ctx instanceof IFrameContext) {
+            ctx.setLoadParams(loadParams);
+            ctx.getIFrameElement().contentWindow.location.replace(url);
+        }
     }
 
     private initializeIFrameWindow(overlayName: string, url: string): IFrameWindow {
@@ -97,16 +114,19 @@ export default class IFrameProxy {
                 });
                 break;
             case "openLinkInNewWindow":
-                targetIframeWindow = this.initializeIFrameWindow(overlayName, params.loadParams.url);
+                targetIframeWindow = this.initializeIFrameWindow(overlayName, params.loadParams.__url);
                 overlayManager.open(targetIframeWindow, params.openConfig, params.loadParams).then(result => {
                     sendReturnCommand(result);
                 });
                 break;
             case "openLinkInNewModalWindow":
-                targetIframeWindow = this.initializeIFrameWindow(overlayName, params.loadParams.url);
+                targetIframeWindow = this.initializeIFrameWindow(overlayName, params.loadParams.__url);
                 overlayManager.openAsModal(targetIframeWindow, params.openConfig, params.loadParams).then(result => {
                     sendReturnCommand(result);
                 });
+                break;
+            case "loadEmbeddedIFrame":
+                this.loadEmbeddedIFrame(params.targetFrameId, params.url, params.loadParams);
                 break;
             case "returnAndCloseOverlay":
                 if (overlay) overlay.close(Result.ok(params));
@@ -162,6 +182,8 @@ class IFrameContext implements DocumentContext {
     private mouseDownEventHanderBindThis;
     private onloadHandlerIsExecuted = false;
 
+    private loadParams: any;
+
     constructor( 
         private iframeEl: HTMLIFrameElement,
         private iframeId: string,
@@ -208,10 +230,7 @@ class IFrameContext implements DocumentContext {
             throw e;
         }
 
-        let loadParams;
-
         if (iFrameOverlay) {
-            loadParams = iFrameOverlay.getLoadParams();
             iFrameOverlay.hideLocalWaitScreen();
         }
 
@@ -225,7 +244,7 @@ class IFrameContext implements DocumentContext {
             command: "dispatchConfig",
             params: {
                 frameId: this.iframeId,
-                loadParams: loadParams
+                loadParams: this.loadParams
             },
             toDownstream: true,
             isOverlayjsMessage: true
@@ -235,7 +254,8 @@ class IFrameContext implements DocumentContext {
 
         const embeddedIframes = iframeDocWindow.document.getElementsByTagName("iframe");
         for (let i = 0; i < embeddedIframes.length; i++) {
-            IFrameProxy.getInstance().register(embeddedIframes[i], this.overlayManager);
+            let frameId = IFrameProxy.getInstance().register(embeddedIframes[i], this.overlayManager);
+            embeddedIframes[i].dataset[IFrameProxy.EMBEDDED_IFRAME_ID_DATA_FIELD_NAME] = frameId;
         }
     }
 
@@ -300,6 +320,10 @@ class IFrameContext implements DocumentContext {
         this.overlayManager.handoverMouseDownEvent(e);
     }
 
+    public getIFrameElement(): HTMLIFrameElement {
+        return this.iframeEl;
+    }
+
     public getDocumentWindow(): Window {
         return this.iframeEl.contentWindow;
     }
@@ -310,6 +334,10 @@ class IFrameContext implements DocumentContext {
 
     public getHolderOverlay(): Overlay {
         return this.holderOverlay;
+    }
+
+    public setLoadParams(loadParams: any) {
+        this.loadParams = loadParams;
     }
 
     public destory() {

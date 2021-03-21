@@ -12,7 +12,6 @@ export default class IFrameWindow extends DialogWindow {
     protected sourceUrl: string;
     protected iFrameEl: HTMLIFrameElement;
     protected frameId: string = null;
-    protected loadParams: any;
     protected iFrameIsActive: boolean = false;
 
     public static IFRAME_DOM_ID = "ojs_active_dialog_window_iframe_element";
@@ -50,7 +49,7 @@ export default class IFrameWindow extends DialogWindow {
     }
 
     public async load(isModal: boolean, params?: any): Promise<Result> {
-        this.loadParams = params;
+        IFrameProxy.getInstance().setLoadParams(this.frameId, params);
         this.changeWindowCaption("");
 
         this.iFrameIsActive = true;
@@ -65,10 +64,6 @@ export default class IFrameWindow extends DialogWindow {
 
     public changeSourceUrl(url: string): void {
         this.sourceUrl = url;
-    }
-
-    public getLoadParams(): any {
-        return this.loadParams;
     }
 
     public onIFrameLoaded(): void {

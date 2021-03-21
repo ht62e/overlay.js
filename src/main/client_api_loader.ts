@@ -1,5 +1,6 @@
 import { Result } from "./core/common/dto";
 import Common from "./core/common/common";
+import IFrameProxy from "./core/overlay/iframe_proxy";
 
 export default class OjsClient {
     private firedOnLoadEvent = false;
@@ -251,14 +252,27 @@ export default class OjsClient {
     
     public openLinkInNewWindow(name: string, url: string, params: any, openConfig): Promise<any> {
         if (!params) params = {};
-        params.url = url;
+        params.__url = url;
         return this._open(name, "openLinkInNewWindow", params, openConfig);
     }
     
     public openLinkInNewModalWindow(name: string, url: string, params: any, openConfig): Promise<any> {
         if (!params) params = {};
-        params.url = url;
+        params.__url = url;
         return this._open(name, "openLinkInNewModalWindow", params, openConfig);
+    }
+
+    public loadEmbeddedIFrame(targetIFrameElement: HTMLIFrameElement, url: string, params: any): void {
+        this.hostContext.postMessage({
+            command: "loadEmbeddedIFrame",
+            params: {
+                url: url,
+                targetFrameId: targetIFrameElement.dataset[IFrameProxy.EMBEDDED_IFRAME_ID_DATA_FIELD_NAME],
+                loadParams: params
+            },
+            sender: this.getFrameId(),
+            isOverlayjsMessage: true
+        }, "*");
     }
     
     public showLoadingOverlay(message: string, showProgressBar: boolean, progressRatio: number): void {
