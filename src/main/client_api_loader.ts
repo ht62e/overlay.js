@@ -97,6 +97,9 @@ export default class OjsClient {
     }
     
     public resolvePromiseTrigger(overlayName: string, returnValue: Result): void {
+        //呼び出し元がリロードされた後にPromiseの結果が返ってきてshiftが実行されないようにする
+        if (!this.awaitCallTable[overlayName]) return;
+
         const trigger = this.awaitCallTable[overlayName].shift();
         if (returnValue.isOk) {
             trigger.resolve(returnValue);
