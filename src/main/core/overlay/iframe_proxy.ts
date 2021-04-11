@@ -28,7 +28,15 @@ export default class IFrameProxy {
     public register(iframeEl: HTMLIFrameElement, overlayManager: OverlayManager, holderOverlay?: Overlay, overlaysLoadEventHandler?: () => void): string {
         const id: string = String(IFrameProxy.iframeIdSequence++);
         this.documentContexts.set(id, new IFrameContext(
-            iframeEl, id, overlayManager, holderOverlay, overlaysLoadEventHandler
+            iframeEl, id, holderOverlay, null, overlayManager, overlaysLoadEventHandler
+        ));
+        return id;
+    }
+
+    public registerEmbedded(iframeEl: HTMLIFrameElement, parentContext: IFrameContext, overlayManager: OverlayManager): string {
+        const id: string = String(IFrameProxy.iframeIdSequence++);
+        this.documentContexts.set(id, new IFrameContext(
+            iframeEl, id, null, parentContext, overlayManager, null
         ));
         return id;
     }
@@ -187,8 +195,9 @@ class IFrameContext implements DocumentContext {
     constructor( 
         private iframeEl: HTMLIFrameElement,
         private iframeId: string,
-        private overlayManager: OverlayManager,
         private holderOverlay: Overlay,
+        private parentContext: IFrameContext,
+        private overlayManager: OverlayManager,
         private overlaysLoadEventHandler: () => void) {
 
             this.mouseMoveEventHanderBindThis = this.mouseMoveEventHander.bind(this);
@@ -252,9 +261,10 @@ class IFrameContext implements DocumentContext {
         
         if (this.overlaysLoadEventHandler) this.overlaysLoadEventHandler();
 
+        //iframe内の埋め込みiframeを登録
         const embeddedIframes = iframeDocWindow.document.getElementsByTagName("iframe");
         for (let i = 0; i < embeddedIframes.length; i++) {
-            let frameId = IFrameProxy.getInstance().register(embeddedIframes[i], this.overlayManager);
+            let frameId = IFrameProxy.getInstance().registerEmbedded(embeddedIframes[i], this, this.overlayManager);
             embeddedIframes[i].dataset[IFrameProxy.EMBEDDED_IFRAME_ID_DATA_FIELD_NAME] = frameId;
         }
     }
@@ -311,9 +321,16 @@ class IFrameContext implements DocumentContext {
     }
 
     private mouseMoveEventHander(e: MouseEvent): void {
-        const rect: DOMRect = this.iframeEl.getBoundingClientRect();
-        Common.currentMouseClientX = e.clientX + rect.left;
-        Common.currentMouseClientY = e.clientY + rect.top;
+        let totalOffsetX: number = 0, totalOffsetY: number = 0;
+        let ctx: IFrameContext = this;
+        while (ctx != null) {
+            let rect: DOMRect = ctx.iframeEl.getBoundingClientRect();
+            totalOffsetX += rect.left;
+            totalOffsetY += rect.top;
+            ctx = ctx.parentContext;
+        }
+        Common.currentMouseClientX = e.clientX + totalOffsetX;
+        Common.currentMouseClientY = e.clientY + totalOffsetY;
     }
 
     private mouseDownEventHander(e: MouseEvent): void {
