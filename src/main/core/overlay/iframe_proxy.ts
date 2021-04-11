@@ -10,7 +10,9 @@ export default class IFrameProxy {
     private static singleton = new IFrameProxy();
     private static iframeIdSequence: number = 0;
 
+    public static ROOT_CONTEXT_NAME: string = "root";
     public static EMBEDDED_IFRAME_ID_DATA_FIELD_NAME: string = "_ojsFrameId";
+    public static EMBEDDED_IFRAME_NAME_DATA_FIELD_NAME: string = "ojsEmbeddedFrameName";
 
     private hostIsRegisterd: boolean = false;
 
@@ -82,24 +84,37 @@ export default class IFrameProxy {
         }
     }
 
-    private sendMessage(data: any): void {
-        const dCtx: DocumentContext = this.documentContexts.get(data.sender);
-        const overlayManager: OverlayManager = dCtx.getOverlayManager();
+    private async sendMessage(data: any) {
+        const send = async function(target: DocumentContext, sender: string, data: any) {
+            if (!target.getDocumentWindow()) {
+                console.error("フレームID: " + sender + " は先に破棄されたためメッセージを送信できませんでした。");
+                return;
+            }
 
-        if (data.destination === "*") {
+            await target.waitContextConfiguration();
 
-        } else {
-            const destOverlay: Overlay = overlayManager.getOverlay(data.destination);
+            target.getDocumentWindow().postMessage({
+                command: "sentMessageDistribution", params: data, sender: sender, isOverlayjsMessage: true, toDownstream: true
+            }, "*"); 
         }
+
         
+        this.documentContexts.forEach(async (dCtx: DocumentContext, frameId: string) => {
+            if (data.destination === "*" || data.destination === dCtx.getContextName()) {
+                await send(dCtx, data.sender, data.params);
+            }
+        });
+
     }
 
     private postMessageHandler(e: MessageEvent) {
-        if (!e.data.isOverlayjsMessage || e.data.toDownstream) return;
+        if (!e.data.isOverlayjsMessage) return;
+        if (e.data.toDownstream) return;
         if (!e.data || !e.data.command) throw new Error("パラメータが不正です。");
-        if (!e.data.sender) throw new Error("FrameIDが未指定です。loadイベントハンドラ実行後に実行する必要があります。");
+        if (e.data.sender === null || e.data.sender === undefined) throw new Error("FrameIDが未指定です。loadイベントハンドラ実行後に実行する必要があります。");
 
         const data = e.data;
+
         const params = data.params ? data.params : {};
         const dCtx: DocumentContext = this.documentContexts.get(data.sender);
         const senderOverlay: Overlay = dCtx.getHolderOverlay();
@@ -191,6 +206,8 @@ interface DocumentContext {
     getDocumentWindow(): Window;
     getOverlayManager(): OverlayManager;
     getHolderOverlay(): Overlay;
+    getContextName(): string;
+    waitContextConfiguration(): Promise<void>;
     destory();
 }
 
@@ -202,8 +219,10 @@ class IFrameContext implements DocumentContext {
     private onPageHideEventHandlerBindThis;
     private mouseMoveEventHanderBindThis;
     private mouseDownEventHanderBindThis;
+    
     private onloadHandlerIsExecuted = false;
-
+    private onloadHandlerIsFinished = false;
+    private contextName;
     private loadParams: any;
 
     constructor( 
@@ -219,6 +238,25 @@ class IFrameContext implements DocumentContext {
         this.mouseDownEventHanderBindThis = this.mouseDownEventHander.bind(this);
         this.onIFrameLoadEventHandlerBindThis = this.iFrameOnLoadHandler.bind(this);
         this.onPageHideEventHandlerBindThis = this.pageHideEventHandler.bind(this);
+
+        if (holderOverlay) {
+            this.contextName = holderOverlay.getName();
+        } else {
+            const embeddedFrameName: string = iframeEl.dataset[IFrameProxy.EMBEDDED_IFRAME_NAME_DATA_FIELD_NAME];
+            let ctx: IFrameContext = this;
+            while (embeddedFrameName) { //埋め込みiframeに名前が設定されている場合にのみcontextNameを設定
+                if (ctx.parentContext) {
+                    ctx = ctx.parentContext;
+                } else {
+                    if (ctx.holderOverlay) {
+                        this.contextName = ctx.holderOverlay.getName() + "." + embeddedFrameName;
+                    } else {
+                        this.contextName = IFrameProxy.ROOT_CONTEXT_NAME + "." + embeddedFrameName;
+                    }
+                    break;
+                }
+            }
+        }
 
         this.iFrameOnLoadHandler(null);
 
@@ -277,6 +315,8 @@ class IFrameContext implements DocumentContext {
             let frameId = IFrameProxy.getInstance().registerEmbedded(embeddedIframes[i], this, this.overlayManager);
             embeddedIframes[i].dataset[IFrameProxy.EMBEDDED_IFRAME_ID_DATA_FIELD_NAME] = frameId;
         }
+
+        this.onloadHandlerIsFinished = true;
     }
 
     private async waitOjsClientInitializing() {
@@ -325,9 +365,41 @@ class IFrameContext implements DocumentContext {
         });
     }
 
+    public async waitContextConfiguration() {
+        return new Promise<void>((resolve, reject) => {
+            if (this.onloadHandlerIsFinished) {
+                resolve();
+            } else {
+                let pollingElapsedTime = 0;
+                const sprictLoadWatcherId = setInterval(() => {
+                    if (this.onloadHandlerIsFinished) {
+                        clearInterval(sprictLoadWatcherId);
+                        resolve();
+                    }
+    
+                    //エラー時無限ポーリング防止
+                    pollingElapsedTime += IFrameContext.POLLING_INTERVAL;
+                    if (pollingElapsedTime > IFrameContext.POLLING_TIMEOUT) {
+                        clearInterval(sprictLoadWatcherId);
+                        reject();
+                    }
+    
+                }, IFrameContext.POLLING_INTERVAL);
+            }
+        });
+    }
+
     private pageHideEventHandler() {
         this.iframeEl.contentWindow.removeEventListener("pagehide", this.onPageHideEventHandlerBindThis);
         this.onloadHandlerIsExecuted = false;
+        this.onloadHandlerIsFinished = false;
+
+        //iframe内の埋め込みiframeの登録解除
+        const embeddedIframes = this.iframeEl.contentDocument.getElementsByTagName("iframe");
+        for (let i = 0; i < embeddedIframes.length; i++) {
+            let frameId = embeddedIframes[i].dataset[IFrameProxy.EMBEDDED_IFRAME_ID_DATA_FIELD_NAME];
+            IFrameProxy.getInstance().unregister(frameId);
+        }
     }
 
     private mouseMoveEventHander(e: MouseEvent): void {
@@ -361,6 +433,10 @@ class IFrameContext implements DocumentContext {
 
     public getHolderOverlay(): Overlay {
         return this.holderOverlay;
+    }
+
+    public getContextName(): string {
+        return this.contextName;
     }
 
     public setLoadParams(loadParams: any) {
@@ -430,6 +506,14 @@ class HostContext implements DocumentContext {
 
     public getHolderOverlay(): Overlay {
         return null;
+    }
+
+    public getContextName(): string {
+        return IFrameProxy.ROOT_CONTEXT_NAME;
+    }
+
+    public waitContextConfiguration(): Promise<void> {
+        return Promise.resolve();
     }
 
     public destory() {

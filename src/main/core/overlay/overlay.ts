@@ -2,7 +2,6 @@ import OverlayManager from "./overlay_manager";
 import { Point, Size, CssSize } from "../common/types";
 import CssTransitionDriver from "../common/css_transition_driver";
 import { Result } from "../common/dto";
-import WaitScreen from "../common/wait_screen";
 
 export interface OverlayOptions {
     size?: CssSize;

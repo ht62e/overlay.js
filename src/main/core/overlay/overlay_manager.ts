@@ -116,21 +116,6 @@ export default class OverlayManager {
         IFrameProxy.getInstance().registerHost(this);
     }
 
-    public sendMessage(destination: string, data: any, sender: string): Promise<Result> {
-        const destOverlay = this.overlays.get(destination);
-        if (!destOverlay) throw new Error("送り先オーバーレイ [" + data.destination + "] は存在しません。");
-        return destOverlay.onReceiveMessage(data, this.overlays.get(sender));
-    }
-
-    public broadcastMessage(data: any, sender: string): void {
-        const senderOverlay = this.overlays.get(sender);
-        this.overlays.forEach((overlay: Overlay, name: string) => {
-            if (overlay !== senderOverlay) {
-                overlay.onReceiveMessage(data, senderOverlay);
-            }
-        });
-    }
-
     private onMouseDown(event: MouseEvent) {
         if (this.requestedCancelAutoClosingOnlyOnce) {
             this.requestedCancelAutoClosingOnlyOnce = false;

@@ -15,7 +15,7 @@ export default class OjsClient {
         CONFIRM_DELETE: 12,
     };
 
-    private receiveMessageEventListener: (params: any) => void;
+    private sentMessageReceiver: (params: any) => void;
     private clientBootstrapFunction: (params: any) => void;
 
     private awaitCallTable = new Map<string, Array<any>>();
@@ -61,8 +61,12 @@ export default class OjsClient {
                         this.cancelAndClose();
                     }
                     break;
-                case "receiveMessage":
-                    this.receiveMessageEventListener(data.params);
+                case "sentMessageDistribution":
+                    if (this.sentMessageReceiver) {
+                        this.sentMessageReceiver(data.params);
+                    } else {
+                        console.warn("No sentMessageReceiver.");
+                    }
                     break;
                 case "return":
                     this.resolvePromiseTrigger(data.sender, data.params);
@@ -85,6 +89,10 @@ export default class OjsClient {
 
     public setOverlayjsOnLoadEventHandler(handler: (params: any) => void): void {
         this.clientBootstrapFunction = handler;
+    }
+
+    public setSentMessageReceiver(handler: (params: any) => void): void {
+        this.sentMessageReceiver = handler;
     }
 
     public addPromiseTrigger(overlayName: string, promiseResolve, promiseReject): void {
@@ -148,19 +156,7 @@ export default class OjsClient {
             isOverlayjsMessage: true
         }, "*");
     }
-    
-    public broadcastMessage(data: any): void {
-        if (!this.tryAndPendPostMessage(this.broadcastMessage, arguments)) return;
         
-        this.hostContext.postMessage({
-            command: "broadcastMessage",
-            destination: "*",
-            params: data,
-            sender: this.getFrameId(),
-            isOverlayjsMessage: true
-        }, "*");   
-    }
-    
     public changeWindowCaption(caption: string): void {
         if (!this.tryAndPendPostMessage(this.changeWindowCaption, arguments)) return;
         
@@ -263,6 +259,8 @@ export default class OjsClient {
     }
 
     public loadEmbeddedIFrame(targetIFrameElement: HTMLIFrameElement, url: string, params: any): void {
+        if (!this.tryAndPendPostMessage(this.loadEmbeddedIFrame, arguments)) return;
+        
         this.hostContext.postMessage({
             command: "loadEmbeddedIFrame",
             params: {
@@ -276,6 +274,8 @@ export default class OjsClient {
     }
     
     public showLoadingOverlay(message: string, showProgressBar: boolean, progressRatio: number): void {
+        if (!this.tryAndPendPostMessage(this.showLoadingOverlay, arguments)) return;
+        
         this.hostContext.postMessage({
             command: "showLoadingOverlay",
             params: {
@@ -289,6 +289,8 @@ export default class OjsClient {
     }
     
     public hideLoadingOverlay(): void {
+        if (!this.tryAndPendPostMessage(this.hideLoadingOverlay, arguments)) return;
+
         this.hostContext.postMessage({
             command: "hideLoadingOverlay",
             sender: this.getFrameId(),
