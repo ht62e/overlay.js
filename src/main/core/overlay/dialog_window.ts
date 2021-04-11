@@ -16,7 +16,6 @@ export default abstract class DialogWindow extends ResizableOverlay {
     protected wrapperEl: HTMLDivElement;
     protected headerEl: HTMLDivElement;
     protected windowContentEl: HTMLDivElement;
-
     protected waitScreen: WaitScreen;
 
     protected headerCaptionEl: HTMLDivElement;
@@ -80,7 +79,7 @@ export default abstract class DialogWindow extends ResizableOverlay {
         _s.style.height = "100%";
 
         this.waitScreen = new WaitScreen();
-        this.windowContentEl.appendChild(this.waitScreen.getScreenElement());
+        this.wrapperEl.appendChild(this.waitScreen.getScreenElement());
         
         this.wrapperEl.appendChild(this.headerEl);
         this.wrapperEl.appendChild(this.windowContentEl);
@@ -161,10 +160,12 @@ export default abstract class DialogWindow extends ResizableOverlay {
         this.headerCaptionEl.textContent = title;
     }
 
+    //override
     public showLocalWaitScreen(message: string, showProgressBar?: boolean, progressRatio?: number): void {
         this.waitScreen.show(message, showProgressBar, progressRatio);
     }
 
+    //override
     public hideLocalWaitScreen() {
         this.waitScreen.hide();
     }

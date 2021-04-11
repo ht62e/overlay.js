@@ -1,0 +1,3 @@
+interface IFrameHolder {
+    getIFrameIsActive(): boolean;
+}

@@ -82,6 +82,18 @@ export default class IFrameProxy {
         }
     }
 
+    private sendMessage(data: any): void {
+        const dCtx: DocumentContext = this.documentContexts.get(data.sender);
+        const overlayManager: OverlayManager = dCtx.getOverlayManager();
+
+        if (data.destination === "*") {
+
+        } else {
+            const destOverlay: Overlay = overlayManager.getOverlay(data.destination);
+        }
+        
+    }
+
     private postMessageHandler(e: MessageEvent) {
         if (!e.data.isOverlayjsMessage || e.data.toDownstream) return;
         if (!e.data || !e.data.command) throw new Error("パラメータが不正です。");
@@ -165,6 +177,8 @@ export default class IFrameProxy {
             case "changeWindowCaption":
                 if (senderOverlay) (senderOverlay as DialogWindow).changeWindowCaption(params.caption);
                 break;
+            case "sendMessage":
+                this.sendMessage(data);
             case "":
                 break;
         }
@@ -193,33 +207,31 @@ class IFrameContext implements DocumentContext {
     private loadParams: any;
 
     constructor( 
-        private iframeEl: HTMLIFrameElement,
-        private iframeId: string,
-        private holderOverlay: Overlay,
-        private parentContext: IFrameContext,
-        private overlayManager: OverlayManager,
-        private overlaysLoadEventHandler: () => void) {
+            private iframeEl: HTMLIFrameElement,
+            private iframeId: string,
+            private holderOverlay: Overlay,
+            private parentContext: IFrameContext,
+            private overlayManager: OverlayManager,
+            private overlaysLoadEventHandler: () => void)
+    {
 
-            this.mouseMoveEventHanderBindThis = this.mouseMoveEventHander.bind(this);
-            this.mouseDownEventHanderBindThis = this.mouseDownEventHander.bind(this);
-            this.onIFrameLoadEventHandlerBindThis = this.iFrameOnLoadHandler.bind(this);
-            this.onPageHideEventHandlerBindThis = this.pageHideEventHandler.bind(this);
-            const window = this.iframeEl.contentWindow as any;
+        this.mouseMoveEventHanderBindThis = this.mouseMoveEventHander.bind(this);
+        this.mouseDownEventHanderBindThis = this.mouseDownEventHander.bind(this);
+        this.onIFrameLoadEventHandlerBindThis = this.iFrameOnLoadHandler.bind(this);
+        this.onPageHideEventHandlerBindThis = this.pageHideEventHandler.bind(this);
 
-            this.iFrameOnLoadHandler(null);
+        this.iFrameOnLoadHandler(null);
 
-            //ページ遷移完了後に発火する
-            //（ただし、初回ロード時にreadyStateがすでにこの時点でcompleteの場合でも発火する場合があるので
-            //  重複実行への対策が必要 -> onloadHandlerIsExecutedフラグ）
-            this.iframeEl.addEventListener("load", this.onIFrameLoadEventHandlerBindThis);
+        //ページ遷移完了後に発火する
+        //（ただし、初回ロード時にreadyStateがすでにこの時点でcompleteの場合でも発火する場合があるので
+        //  重複実行への対策が必要 -> onloadHandlerIsExecutedフラグ）
+        this.iframeEl.addEventListener("load", this.onIFrameLoadEventHandlerBindThis);
     }
 
     private async iFrameOnLoadHandler(e: Event) {
         //アンロード(close)時エラー対策
-        let iFrameOverlay: IFrameWindow;
-        if (this.holderOverlay instanceof IFrameWindow) {
-            iFrameOverlay = this.holderOverlay as IFrameWindow;
-            if (!iFrameOverlay.getIFrameIsActive()) return;
+        if (this.holderOverlay && (this.holderOverlay as any).getIFrameIsActive) {
+            if (!(this.holderOverlay as IFrameWindow).getIFrameIsActive()) return;
         }
 
         const iframeDocWindow = this.iframeEl.contentWindow;
@@ -239,9 +251,7 @@ class IFrameContext implements DocumentContext {
             throw e;
         }
 
-        if (iFrameOverlay) {
-            iFrameOverlay.hideLocalWaitScreen();
-        }
+        if (this.holderOverlay) this.holderOverlay.hideLocalWaitScreen();
 
         //ページ遷移を検出してonloadHandlerIsExecutedフラグをリセットする
         iframeDocWindow.addEventListener("pagehide", this.onPageHideEventHandlerBindThis);

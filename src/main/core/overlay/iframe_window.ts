@@ -8,7 +8,7 @@ export interface IFrameWindowOptions extends WindowOptions {
     url?: string;
 }
 
-export default class IFrameWindow extends DialogWindow {
+export default class IFrameWindow extends DialogWindow implements IFrameHolder {
     protected sourceUrl: string;
     protected iFrameEl: HTMLIFrameElement;
     protected frameId: string = null;
