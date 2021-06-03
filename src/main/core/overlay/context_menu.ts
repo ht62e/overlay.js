@@ -3,14 +3,21 @@ import { Size, CssSize } from "../common/types";
 import { Result } from "../common/dto";
 import Common from "../common/common";
 
+export interface ContextMenuOptions extends OverlayOptions {
+    openToLeftSideWhenNoSpace?: boolean;
+}
+
 export default class ContextMenu extends Overlay {
+
+    protected contextMenuOptions: ContextMenuOptions;
+
     protected contentEl: HTMLElement;
     protected onetimeSize: Size;
 
     protected static DEFAULT_SIZE_WIDTH: string = "200px";
     protected static DEFAULT_SIZE_HEIGHT: string = "auto";
 
-    constructor(name: string, contentEl: HTMLElement, options: OverlayOptions) {
+    constructor(name: string, contentEl: HTMLElement, options: ContextMenuOptions) {
         if (!options) options = {};
 
         if (!options.size) {
@@ -18,6 +25,8 @@ export default class ContextMenu extends Overlay {
         }
 
         super(name, options);
+
+        this.contextMenuOptions = options;
 
         options.subOverlay = true;
         options.forceCloseBeforeReopen = true;
@@ -64,7 +73,7 @@ export default class ContextMenu extends Overlay {
         if (xVisibleAreaIsLargerThanOverlay) {
             if (xCanDisplayOnNormalPosition) {
                 //指定された位置をそのまま左上座標にする
-            } else if (xCanDisplayOnReversePosition) {
+            } else if (this.contextMenuOptions.openToLeftSideWhenNoSpace && xCanDisplayOnReversePosition) {
                 x -= widthPx;
             } else {
                 //右端に寄せる
